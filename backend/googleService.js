@@ -7,23 +7,27 @@ const {
   client_id,
   redirect_uris
 } = process.env
+
+
+const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 const TOKEN_PATH = 'token.json'
 
-exports.googleAuth = () => {
+exports.googleAuth = async () => {
   const oAuth2Client = new google.auth.OAuth2(
-    client_id, client_secret, redirect_uris[0])
+    client_id, client_secret, redirect_uris)
   
   // TODO: test whether token is still valid or not...
-  if (!fs.existsSync(TOKEN_PATH)) {
-    getAccessToken()
+  let token = JSON.parse(fs.readFileSync(TOKEN_PATH))
+  const today = Date.now()
+  if (token.expiry_date - today < 0 ) {
+    token = await getAccessToken(oAuth2Client)
   }
-  const token = fs.readFileSync(TOKEN_PATH)
-  oAuth2Client.setCredentials(JSON.parse(token))
+  oAuth2Client.setCredentials(token)
   
   return oAuth2Client
 }
 
-function getAccessToken () {
+function getAccessToken (oAuth2Client) {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES
@@ -34,15 +38,16 @@ function getAccessToken () {
     output: process.stdout
   })
   rl.question('Enter the code from that page here: ', (code) => {
-    rl.close()
+    rl.close();
     oAuth2Client.getToken(code, (err, token) => {
-      if (err) return console.error('Error retrieving access token', err)
-      oAuth2Client.setCredentials(token)
+      if (err) return console.error('Error retrieving access token', err);
+      oAuth2Client.setCredentials(token);
       // Store the token to disk for later program executions
       fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return console.error(err)
-        console.log('Token stored to', TOKEN_PATH)
-      })
-    })
+        if (err) return console.error(err);
+        console.log('Token stored to', TOKEN_PATH);
+      });
+      return JSON.stringify(token)
+    });
   })
 }

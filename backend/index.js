@@ -1,9 +1,20 @@
 const { google } = require('googleapis')
 const { googleAuth } = require('./googleService.js')
 
-const auth = googleAuth()
+async function main() {
+  const auth = await googleAuth()
 
-fetchEvents(auth)
+  const events = await fetchEvents(auth)
+  const calendars = await fetchCalendars(auth)
+  console.log(calendars.length)
+  console.log(events.length)
+}
+
+async function fetchCalendars (auth) {
+  const calendar = google.calendar({ version: 'v3', auth})
+  const { data: { items }} = await calendar.calendarList.list()
+  return items
+}
 
 async function fetchEvents (auth) {
   const calendar = google.calendar({ version: 'v3', auth })
@@ -13,8 +24,8 @@ async function fetchEvents (auth) {
     singleEvents: true,
     orderBy: 'startTime'
   })
-  .catch(err => console.log(err))
-  console.log(items.length)
+  .catch(err => console.log('yoo', err))
+  return items
 }
 
 function listEvents (auth) {
@@ -39,3 +50,5 @@ function listEvents (auth) {
     }
   })
 }
+
+main()
