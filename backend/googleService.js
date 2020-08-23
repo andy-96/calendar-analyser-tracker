@@ -1,53 +1,66 @@
-require('dotenv').config()
-const fs = require('fs')
-const readline = require('readline')
 const { google } = require('googleapis')
-const {
-  client_secret,
-  client_id,
-  redirect_uris
-} = process.env
+const readline = require('readline')
+const { mongoDB, googleAuth } = require('./utils')
 
-
-const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
-const TOKEN_PATH = 'token.json'
-
-exports.googleAuth = async () => {
-  const oAuth2Client = new google.auth.OAuth2(
-    client_id, client_secret, redirect_uris)
-  
-  // TODO: test whether token is still valid or not...
-  let token = JSON.parse(fs.readFileSync(TOKEN_PATH))
-  const today = Date.now()
-  if (token.expiry_date - today < 0 ) {
-    token = await getAccessToken(oAuth2Client)
-  }
-  oAuth2Client.setCredentials(token)
-  
-  return oAuth2Client
+async function fetchCalendars () {
+  const auth = await googleAuth()
+  const calendar = google.calendar({ version: 'v3', auth })
+  const { data: { items }} = await calendar.calendarList.list()
+    .catch(err => console.error(err))
+  return items
 }
 
-function getAccessToken (oAuth2Client) {
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES
+async function saveCalendars () {
+  const calendars = await fetchCalendars()
+  const mongo = await mongoDB()
+  const calendarCollection = mongo.collection('calendars')
+  calendarCollection.insertMany(calendars)
+    .then(res => console.log('success'))
+    .catch(err => console.error(err))
+}
+
+async function fetchEvents () {
+  const calendar = google.calendar({ version: 'v3', auth: googleAuth() })
+  const { data: { items }} = await calendar.events.list({
+    calendarId: 'primary',
+    maxResults: 10,
+    singleEvents: true,
+    orderBy: 'startTime'
   })
-  console.log('Authorize this app by visiting this url:', authUrl)
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  })
-  rl.question('Enter the code from that page here: ', (code) => {
-    rl.close();
-    oAuth2Client.getToken(code, (err, token) => {
-      if (err) return console.error('Error retrieving access token', err);
-      oAuth2Client.setCredentials(token);
-      // Store the token to disk for later program executions
-      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return console.error(err);
-        console.log('Token stored to', TOKEN_PATH);
-      });
-      return JSON.stringify(token)
-    });
+  .catch(err => console.log('yoo', err))
+  return items
+}
+
+function listEvents () {
+  const calendar = google.calendar({ version: 'v3', auth: googleAuth() })
+  calendar.events.list({
+    calendarId: 'primary',
+    timeMin: (new Date()).toISOString(),
+    maxResults: 10,
+    singleEvents: true,
+    orderBy: 'startTime'
+  }, (err, res) => {
+    if (err) return console.log('The API returned an error: ' + err)
+    const events = res.data.items
+    if (events.length) {
+      console.log('Upcoming 10 events:')
+      events.map((event, i) => {
+        const start = event.start.dateTime || event.start.date
+        console.log(`${start} - ${event.summary}`)
+      })
+    } else {
+      console.log('No upcoming events found.')
+    }
   })
 }
+
+
+function test() {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => resolve('whaat'), 1000)
+  })
+}
+;(async () => {
+  const sth = await saveCalendars()
+  console.log(sth)
+})()
