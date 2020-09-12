@@ -23,8 +23,15 @@ exports.mongoDB = () => MongoClient.connect('mongodb://127.0.0.1:27017', {
 exports.googleAuth = async () => {
   const oAuth2Client = new google.auth.OAuth2(
     client_id, client_secret, redirect_uris)
-
-  let token = JSON.parse(fs.readFileSync(TOKEN_PATH))
+  
+  //TODO: Promisify the try/catch...
+  try {
+    let token = JSON.parse(fs.readFileSync(TOKEN_PATH))
+  } catch (err) {
+    console.error(`Could not fetch token.json due to ${err}`)
+    let token = 0
+  }
+  console.log(token)
   const today = Date.now()
   if (token.expiry_date - today < 0 ) {
     console.log('Token is expired')

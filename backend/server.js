@@ -1,9 +1,16 @@
+require('dotenv').config()
 const express = require('express')
 const bodyParser= require('body-parser')
 const MongoClient = require('mongodb').MongoClient
 const app = express()
 
-MongoClient.connect('mongodb://127.0.0.1:27017', {
+const {
+  MONGO_USERNAME,
+  MONGO_PASSWORD
+} = process.env
+
+
+MongoClient.connect(`mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/<dbname>?retryWrites=true&w=majority`, {
   useUnifiedTopology: true
 })
   .then(client => {
