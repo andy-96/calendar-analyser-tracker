@@ -12,6 +12,4 @@ async function main() {
   console.log(events.length)
 }
 
-
-
 main()
