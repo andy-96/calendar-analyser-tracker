@@ -5,12 +5,21 @@ const { google } = require('googleapis')
 const MongoClient = require('mongodb').MongoClient
 
 const { GOOGLE_SCOPES, GOOGLE_TOKEN_PATH } = require('./constants')
-const { MONGO_USERNAME, MONGO_PASSWORD, CLIENT_SECRET, CLIENT_ID, REDIRECT_URIS } = process.env
+const {
+  MONGO_USERNAME,
+  MONGO_PASSWORD,
+  CLIENT_SECRET,
+  CLIENT_ID,
+  REDIRECT_URIS,
+} = process.env
 
 exports.mongoDB = () =>
-  MongoClient.connect(`mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/<dbname>?retryWrites=true&w=majority`, {
-    useUnifiedTopology: true,
-  }).then((client) => {
+  MongoClient.connect(
+    `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/<dbname>?retryWrites=true&w=majority`,
+    {
+      useUnifiedTopology: true,
+    }
+  ).then((client) => {
     console.log('Connected to Database')
     return client.db('calendar-analyser-tracker')
   })
@@ -34,12 +43,10 @@ exports.googleAuth = async () => {
   }
   oAuth2Client.setCredentials(token)
 
-  console.log(oAuth2Client)
-
   return oAuth2Client
 }
 
-function getAccessToken(oAuth2Client) {
+async function getAccessToken(oAuth2Client) {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: GOOGLE_SCOPES,
@@ -59,16 +66,13 @@ function getAccessToken(oAuth2Client) {
     rl.on('close', () => {
       resolve(response)
     })
-  }).then((code) => {
-    return oAuth2Client.getToken(code, (err, token) => {
-      if (err) return console.error('Error retrieving access token', err)
-      oAuth2Client.setCredentials(token)
-      // Store the token to disk for later program executions
-      fs.writeFile(GOOGLE_TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return console.error('getToken', err)
-        console.log('Token stored to', GOOGLE_TOKEN_PATH)
-      })
-      return JSON.stringify(token)
-    })
+  }).then(async (code) => {
+    try {
+      const { tokens } = await oAuth2Client.getToken(code)
+      fs.writeFileSync(GOOGLE_TOKEN_PATH, JSON.stringify(tokens))
+      return tokens
+    } catch (err) {
+      console.error('Error retrieving access token', err)
+    }
   })
 }
