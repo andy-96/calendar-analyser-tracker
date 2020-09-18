@@ -2,7 +2,9 @@ const { google } = require('googleapis')
 const readline = require('readline')
 const { mongoDB, googleAuth } = require('./utils')
 
-async function fetchCalendars() {
+const { MONGO_CALENDARS, MONGO_EVENTS } = require('./constants')
+
+const fetchCalendars = async () => {
   const auth = await googleAuth()
   const calendar = google.calendar({ version: 'v3', auth })
   const {
@@ -11,18 +13,19 @@ async function fetchCalendars() {
   return items
 }
 
-async function saveCalendars() {
+const saveCalendars = async() => {
   const calendars = await fetchCalendars()
   const mongo = await mongoDB()
-  const calendarCollection = mongo.collection('calendars')
+  const calendarCollection = mongo.collection(MONGO_CALENDARS)
   calendarCollection
     .insertMany(calendars)
     .then((res) => console.log('success'))
     .catch((err) => console.error(err))
 }
 
-async function fetchEvents() {
-  const calendar = google.calendar({ version: 'v3', auth: googleAuth() })
+const fetchEvents = async () => {
+  const auth = await googleAuth()
+  const calendar = google.calendar({ version: 'v3', auth })
   const {
     data: { items },
   } = await calendar.events
@@ -36,15 +39,18 @@ async function fetchEvents() {
   return items
 }
 
-// TODO: saveEvents to mongoDB
-
-function test() {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => resolve('whaat'), 1000)
-  })
+const saveEvents = async () => {
+  const events = await fetchEvents()
+  const mongo = await mongoDB()
+  const calendarCollection = mongo.collection(MONGO_EVENTS)
+  calendarCollection
+    .insertMany(events)
+    .then((res) => console.log('success'))
+    .catch((err) => console.error(err))
 }
 
-;(async () => {
-  const sth = await saveCalendars()
-  console.log(sth)
+
+(async () => {
+  await saveCalendars()
+  await saveEvents()
 })()
