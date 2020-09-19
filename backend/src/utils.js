@@ -4,6 +4,8 @@ const readline = require('readline')
 const { google } = require('googleapis')
 const MongoClient = require('mongodb').MongoClient
 
+const { MONGO_DB } = require('./constants')
+
 const { GOOGLE_SCOPES, GOOGLE_TOKEN_PATH } = require('./constants')
 const {
   MONGO_USERNAME,
@@ -21,7 +23,7 @@ exports.mongoDB = () =>
     }
   ).then((client) => {
     console.log('Connected to Database')
-    return client.db('calendar-analyser-tracker')
+    return client.db(MONGO_DB)
   })
 
 exports.googleAuth = async () => {

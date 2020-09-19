@@ -1,16 +1,43 @@
-const { google } = require('googleapis')
-const { googleAuth } = require('./utils.js')
-const {  }
+require('dotenv').config()
+const express = require('express')
+const bodyParser = require('body-parser')
+const MongoClient = require('mongodb').MongoClient
+const { MONGO_DB, MONGO_CALENDARS, MONGO_EVENTS } = require('./constants')
+const { MONGO_USERNAME, MONGO_PASSWORD } = process.env
 
-async function main() {
-  const auth = await googleAuth()
+const app = express()
 
-  // TODO: Save calendars and events to MongoDB!! Some kind of sync function
-  // that fetches data from Google and compares it with MongoDB entries.
-  const events = await fetchEvents(auth)
-  const calendars = await fetchCalendars(auth)
-  console.log(calendars.length)
-  console.log(events.length)
-}
+MongoClient.connect(
+  `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/<dbname>?retryWrites=true&w=majority`,
+  {
+    useUnifiedTopology: true,
+  }
+)
+  .then((client) => {
+    console.log('Connected to Database')
+    db = client.db(MONGO_DB)
 
-main()
+    app.use(bodyParser.urlencoded({ extended: true }))
+
+    app.get('/events', (req, res) => {
+      db.collection(MONGO_EVENTS)
+        .find()
+        .toArray()
+        .then((results) => {
+          console.log(results)
+        })
+    })
+    app.post('/events', (req, res) => {
+      db.collection(MONGO_EVENTS)
+        .insertOne(req.body)
+        .then((result) => {
+          res.redirect('/')
+        })
+        .catch((error) => console.error(error))
+    })
+
+    app.listen(3000, function () {
+      console.log('listening on 3000')
+    })
+  })
+  .catch((err) => console.error(err))
