@@ -1,73 +1,134 @@
-<template lang="pug">
-.calendar
-  .cal-side-hours
-    .cal-side-hour
-    .cal-side-hour
-      p 08:00
-    .cal-side-hour
-      p 08:00
-  .cal-header-days
-    .cal-header-day(v-for="(day, index) in getThisWeek" :key="index")
-      p
-        span.cal-header-day-number {{ day.dayNumber }}
-        |  {{ day.dayName }}
+<template>
+  <v-container>
+    <v-row class="text-center">
+      <v-col cols="12">
+        <v-img
+          :src="require('../assets/logo.svg')"
+          class="my-3"
+          contain
+          height="200"
+        />
+      </v-col>
 
+      <v-col class="mb-4">
+        <h1 class="display-2 font-weight-bold mb-3">Welcome to Vuetify</h1>
+
+        <p class="subheading font-weight-regular">
+          For help and collaboration with other Vuetify developers,
+          <br />please join our online
+          <a href="https://community.vuetifyjs.com" target="_blank"
+            >Discord Community</a
+          >
+        </p>
+      </v-col>
+
+      <v-col class="mb-5" cols="12">
+        <h2 class="headline font-weight-bold mb-3">What's next?</h2>
+
+        <v-row justify="center">
+          <a
+            v-for="(next, i) in whatsNext"
+            :key="i"
+            :href="next.href"
+            class="subheading mx-3"
+            target="_blank"
+          >
+            {{ next.text }}
+          </a>
+        </v-row>
+      </v-col>
+
+      <v-col class="mb-5" cols="12">
+        <h2 class="headline font-weight-bold mb-3">Important Links</h2>
+
+        <v-row justify="center">
+          <a
+            v-for="(link, i) in importantLinks"
+            :key="i"
+            :href="link.href"
+            class="subheading mx-3"
+            target="_blank"
+          >
+            {{ link.text }}
+          </a>
+        </v-row>
+      </v-col>
+
+      <v-col class="mb-5" cols="12">
+        <h2 class="headline font-weight-bold mb-3">Ecosystem</h2>
+
+        <v-row justify="center">
+          <a
+            v-for="(eco, i) in ecosystem"
+            :key="i"
+            :href="eco.href"
+            class="subheading mx-3"
+            target="_blank"
+          >
+            {{ eco.text }}
+          </a>
+        </v-row>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
 export default {
   name: "HelloWorld",
-  computed: {
-    getThisWeek() {
-      const today = new Date();
-      const day = today.getDay() === 0 ? 7 : today.getDay();
-      const monday = new Date(today.setDate(today.getDate() - day + 1));
-      const dayNames = [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ];
-      const thisWeekDays = dayNames.map((day, index) => {
-        return {
-          dayName: day,
-          dayNumber: monday.getDate() + index,
-        };
-      });
-      return thisWeekDays;
-    },
-  },
-  mounted() {},
+
+  data: () => ({
+    ecosystem: [
+      {
+        text: "vuetify-loader",
+        href: "https://github.com/vuetifyjs/vuetify-loader",
+      },
+      {
+        text: "github",
+        href: "https://github.com/vuetifyjs/vuetify",
+      },
+      {
+        text: "awesome-vuetify",
+        href: "https://github.com/vuetifyjs/awesome-vuetify",
+      },
+    ],
+    importantLinks: [
+      {
+        text: "Documentation",
+        href: "https://vuetifyjs.com",
+      },
+      {
+        text: "Chat",
+        href: "https://community.vuetifyjs.com",
+      },
+      {
+        text: "Made with Vuetify",
+        href: "https://madewithvuejs.com/vuetify",
+      },
+      {
+        text: "Twitter",
+        href: "https://twitter.com/vuetifyjs",
+      },
+      {
+        text: "Articles",
+        href: "https://medium.com/vuetify",
+      },
+    ],
+    whatsNext: [
+      {
+        text: "Explore components",
+        href: "https://vuetifyjs.com/components/api-explorer",
+      },
+      {
+        text: "Select a layout",
+        href: "https://vuetifyjs.com/getting-started/pre-made-layouts",
+      },
+      {
+        text: "Frequently Asked Questions",
+        href:
+          "https://vuetifyjs.com/getting-started/frequently-asked-questions",
+      },
+    ],
+  }),
 };
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang="sass" scoped>
-.calendar
-  display: flex
-
-  .cal-side-hours
-    flex: 1
-    background-color: black
-    width: 50px
-    height: calc(100vh - 70px)
-
-    .cal-side-hour
-      height: 50px
-
-  .cal-header-days
-    flex: 7
-    display: flex
-
-    .cal-header-day
-      align-items: center
-      justify-content: center
-      flex: 1
-      height: 50px
-
-      .cal-header-day-number
-        font-weight: 1000
-</style>
