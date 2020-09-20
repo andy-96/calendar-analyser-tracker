@@ -25,16 +25,16 @@
 </template>
 
 <script>
-import { mongodb } from "./utils/index";
+import { mongodb } from './utils/index'
 
 export default {
-  name: "App",
+  name: 'App',
   data: () => ({
     events: [
       {
-        name: "Weekly Meeting",
-        start: "2020-09-21 9:0",
-        end: "2020-09-21 10:0",
+        name: 'Weekly Meeting',
+        start: '2020-09-21 9:0',
+        end: '2020-09-21 10:0',
       },
     ],
   }),
@@ -42,38 +42,38 @@ export default {
   methods: {
     convertTime(dateTimeRaw) {
       try {
-        const dateTime = new Date(dateTimeRaw);
-        const year = dateTime.getFullYear();
-        const month = dateTime.getMonth() + 1;
-        const date = dateTime.getDate();
-        const hours = dateTime.getHours();
-        const minutes = dateTime.getMinutes();
-        return `${year}-${month}-${date} ${hours}:${minutes}`;
+        const dateTime = new Date(dateTimeRaw)
+        const year = dateTime.getFullYear()
+        const month = dateTime.getMonth() + 1
+        const date = dateTime.getDate()
+        const hours = dateTime.getHours()
+        const minutes = dateTime.getMinutes()
+        return `${year}-${month}-${date} ${hours}:${minutes}`
       } catch (err) {
-        console.log(dateTimeRaw);
+        console.log(dateTimeRaw)
       }
     },
     async getEvents() {
-      const { data } = await mongodb.get("/events");
+      const { data } = await mongodb.get('/events')
       this.events = data.map((event) => {
-        let start = event.start.dateTime;
-        let end = event.end.dateTime;
-        if (typeof event.start.dateTime === "undefined") {
-          start = event.start.date;
-          end = event.end.date;
+        let start = event.start.dateTime
+        let end = event.end.dateTime
+        if (typeof event.start.dateTime === 'undefined') {
+          start = event.start.date
+          end = event.end.date
         }
         return {
           name: event.summary,
           start: this.convertTime(start),
           end: this.convertTime(end),
-        };
-      });
+        }
+      })
     },
   },
   mounted() {
-    this.getEvents();
+    this.getEvents()
   },
-};
+}
 </script>
 
 <style lang="sass" scoped>
