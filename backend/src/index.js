@@ -19,13 +19,16 @@ MongoClient.connect(
 
     app.use(bodyParser.urlencoded({ extended: true }))
 
-    app.get('/events', (req, res) => {
-      db.collection(MONGO_EVENTS)
-        .find()
-        .toArray()
-        .then((results) => {
-          console.log(results)
-        })
+    app.get('/', (req, res) => res.send('Hi Andy'))
+
+    app.all('/events', function (req, res, next) {
+      res.header('Access-Control-Allow-Origin', '*')
+      res.header('Access-Control-Allow-Headers', 'X-Requested-With')
+      next()
+    })
+    app.get('/events', async (req, res) => {
+      const data = await db.collection(MONGO_EVENTS).find().toArray()
+      res.send(data)
     })
     app.post('/events', (req, res) => {
       db.collection(MONGO_EVENTS)
