@@ -3,9 +3,9 @@ const readline = require('readline')
 const { mongoDB, googleAuth } = require('./utils')
 
 const { MONGO_CALENDARS, MONGO_EVENTS } = require('./constants')
+const { calendar } = require('googleapis/build/src/apis/calendar')
 
-const fetchCalendars = async () => {
-  const auth = await googleAuth()
+const fetchCalendarsFromGoogle = async (auth) => {
   const calendar = google.calendar({ version: 'v3', auth })
   const {
     data: { items },
@@ -15,52 +15,119 @@ const fetchCalendars = async () => {
   return items
 }
 
-const saveCalendars = async () => {
-  let calendars = await fetchCalendars()
-  const mongo = await mongoDB()
+const saveCalendarsToMongo = async (mongo, calendarsGoogle) => {
   const calendarCollection = mongo.collection(MONGO_CALENDARS)
-  return calendarCollection
-    .insertMany(calendars)
-    .then((res) => {
-      console.log('success')
-      return res
-    })
-    .catch((err) => console.error('Could not save calendar', err))
+  const calendarsMongo = await calendarCollection.find().toArray()
+
+  // Only add or update items otherwise do nothing
+  const {
+    updatedItems: updatedCalendars,
+    newItems: newCalendars,
+  } = getUpdatedAndNewItems(calendarsGoogle, calendarsMongo, 'id')
+  if (newCalendars.length !== 0) {
+    calendarCollection
+      .insertMany(newCalendars)
+      .catch((err) => console.error(`Could not save calendar due to ${err}`))
+  }
+  if (updatedCalendars.length !== 0) {
+    updatedCalendars.map(
+      async (calendar) =>
+        await calendarCollection
+          .updateOne({ id: calendar['id'] }, { $set: calendar })
+          .catch((err) =>
+            console.error(`Could not save calendars due to ${err}`)
+          )
+    )
+  }
+  return console.log(
+    `CALENDARS: ${newCalendars.length} were added and ${updatedCalendars.length} were updated!`
+  )
 }
 
-const fetchEvents = async (calendarId) => {
-  const auth = await googleAuth()
+const fetchEventsFromGoogle = async (auth, calendarId, start, end) => {
   const calendar = google.calendar({ version: 'v3', auth })
-  const today = new Date()
-  const tenDaysAgo = new Date()
-  tenDaysAgo.setDate(tenDaysAgo.getDate() - 10)
   const {
     data: { items },
   } = await calendar.events
     .list({
-      calendarId: 'primary',
-      timeMin: tenDaysAgo,
-      timeMax: today,
+      calendarId,
+      timeMin: end,
+      timeMax: start,
       singleEvents: true,
       orderBy: 'startTime',
     })
-    .catch((err) => console.log('fetchEvents', err))
+    .catch((err) =>
+      console.error(`Could not fetch events from Google due to ${err}`)
+    )
   return items
 }
 
-const saveEvents = async (calendarId) => {
-  const events = await fetchEvents(calendarId)
-  const mongo = await mongoDB()
-  const calendarCollection = mongo.collection(MONGO_EVENTS)
-  calendarCollection
-    .insertMany(events)
-    .then((res) => console.log('success'))
-    .catch((err) => console.error(err))
+const saveEventsToMongo = async (mongo, eventsGoogle, start, end) => {
+  const eventCollection = mongo.collection(MONGO_EVENTS)
+  // TODO: specify date to be more performant
+  const eventsMongo = await eventCollection.find().toArray()
+
+  // Only add or update items otherwise do nothing
+  const {
+    updatedItems: updatedEvents,
+    newItems: newEvents,
+  } = getUpdatedAndNewItems(eventsGoogle, eventsMongo, 'id')
+  if (newEvents.length !== 0) {
+    eventCollection
+      .insertMany(newEvents)
+      .catch((err) => console.error(`Could not save events due to ${err}`))
+  }
+  if (updatedEvents.length !== 0) {
+    updatedEvents.map(
+      async (event) =>
+        await eventCollection
+          .updateOne({ id: calendar['id'] }, { $set: event })
+          .catch((err) => console.error(`Could not save events due to ${err}`))
+    )
+  }
+  return console.log(
+    `EVENTS: ${newEvents.length} were added and ${updatedEvents.length} were updated!`
+  )
+}
+
+const getUpdatedAndNewItems = (googleItems, mongoItems, comparison) => {
+  const mongoItemsIDs = mongoItems.map((item) => item[comparison])
+  const googleItemsIDs = googleItems.map((item) => item[comparison])
+  const updatedItems = []
+  const newItems = []
+  for (let i = 0; i < googleItemsIDs.length; i++) {
+    let found = false
+    for (let j = 0; j < mongoItemsIDs.length; j++) {
+      if (googleItemsIDs[i] === mongoItemsIDs[j]) {
+        found = true
+        let mongoItemCopy = mongoItems[j]
+        delete mongoItemCopy['_id']
+        if (JSON.stringify(googleItems[i]) !== JSON.stringify(mongoItemCopy)) {
+          console.log(googleItems[i])
+          console.log(mongoItemCopy)
+          updatedItems.push(googleItems[i])
+        }
+        break
+      }
+    }
+    if (!found) {
+      newItems.push(googleItems[i])
+    }
+  }
+  return { updatedItems, newItems }
 }
 
 ;(async () => {
-  const { ops: calendars } = await saveCalendars()
+  const auth = await googleAuth()
+  const mongo = await mongoDB()
+  const calendars = await fetchCalendarsFromGoogle(auth)
+  await saveCalendarsToMongo(mongo, calendars)
+  const start = new Date()
+  const end = new Date()
+  end.setDate(end.getDate() - 7)
+
   calendars.map(async ({ id: calendarId }) => {
-    await saveEvents(calendarId)
+    const events = await fetchEventsFromGoogle(auth, calendarId, start, end)
+    await saveEventsToMongo(mongo, events, start, end)
   })
 })()
