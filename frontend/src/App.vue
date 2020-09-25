@@ -154,6 +154,7 @@ export default {
           start: new Date(start),
           end: new Date(end),
           color: 'blue',
+          timed: true,
         }
       })
     },

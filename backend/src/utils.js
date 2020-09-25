@@ -4,9 +4,7 @@ const readline = require('readline')
 const { google } = require('googleapis')
 const MongoClient = require('mongodb').MongoClient
 
-const { MONGO_DB } = require('./constants')
-
-const { GOOGLE_SCOPES, GOOGLE_TOKEN_PATH } = require('./constants')
+const { GOOGLE_SCOPES, GOOGLE_TOKEN_PATH, MONGO_DB } = require('./constants')
 const {
   MONGO_USERNAME,
   MONGO_PASSWORD,
@@ -17,7 +15,7 @@ const {
 
 exports.mongoDB = () =>
   MongoClient.connect(
-    `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/<dbname>?retryWrites=true&w=majority`,
+    `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/${MONGO_DB}?retryWrites=true&w=majority`,
     {
       useUnifiedTopology: true,
     }
