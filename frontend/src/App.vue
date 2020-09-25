@@ -14,16 +14,15 @@
       v-spacer
     v-main
       v-row.fill-height
-        v-col>
+        v-col
           v-sheet(height="64")
-              v-btn(outlined class="mr-4" color="grey darken-2" @click="setToday")
-                Today
+            v-toolbar(flat color="white")
+              v-btn(outlined class="mr-4" color="grey darken-2" @click="setToday") Today
               v-btn(fab text small color="grey darken-2" @click="prev")
                 v-icon(small) mdi-chevron-left
               v-btn(fab text small color="grey darken-2" @click="next")
                 v-icon(small) mdi-chevron-right
-              v-toolbar-title(v-if="$refs.calendar")
-                {{ $refs.calendar.title }}
+              v-toolbar-title(v-if="$refs.calendar") {{ $refs.calendar.title }}
               v-spacer
               v-menu(bottom right)
                 template(v-slot:activator="{ on, attrs }")
@@ -52,10 +51,8 @@
               :events="events"
               :event-color="getEventColor"
               :type="type"
-              @click:event="showEvent"
               @click:more="viewDay"
               @click:date="viewDay"
-              @change="updateRange"
             )
             v-menu(
               v-model="selectedOpen"
@@ -87,8 +84,7 @@
                     text
                     color="secondary"
                     @click="selectedOpen = false"
-                  )
-                    Cancel
+                  ) Cancel
 </template>
 
 <script>
@@ -97,12 +93,36 @@ import { mongodb } from './utils/index'
 export default {
   name: 'App',
   data: () => ({
-    events: [
-      {
-        name: 'Weekly Meeting',
-        start: '2020-09-21 9:0',
-        end: '2020-09-21 10:0',
-      },
+    focus: '',
+    type: 'month',
+    typeToLabel: {
+      month: 'Month',
+      week: 'Week',
+      day: 'Day',
+      '4day': '4 Days',
+    },
+    selectedEvent: {},
+    selectedElement: null,
+    selectedOpen: false,
+    events: [],
+    colors: [
+      'blue',
+      'indigo',
+      'deep-purple',
+      'cyan',
+      'green',
+      'orange',
+      'grey darken-1',
+    ],
+    names: [
+      'Meeting',
+      'Holiday',
+      'PTO',
+      'Travel',
+      'Event',
+      'Birthday',
+      'Conference',
+      'Party',
     ],
   }),
   computed: {},
@@ -131,13 +151,31 @@ export default {
         }
         return {
           name: event.summary,
-          start: this.convertTime(start),
-          end: this.convertTime(end),
+          start: new Date(start),
+          end: new Date(end),
+          color: 'blue',
         }
       })
     },
+    viewDay({ date }) {
+      this.focus = date
+      this.type = 'day'
+    },
+    getEventColor(event) {
+      return event.color
+    },
+    setToday() {
+      this.focus = ''
+    },
+    prev() {
+      this.$refs.calendar.prev()
+    },
+    next() {
+      this.$refs.calendar.next()
+    },
   },
   mounted() {
+    this.$refs.calendar.checkChange()
     this.getEvents()
   },
 }
