@@ -31,12 +31,20 @@ MongoClient.connect(
       res.send(data)
     })
     app.post('/events', (req, res) => {
-      db.collection(MONGO_EVENTS)
-        .insertOne(req.body)
-        .then((result) => {
-          res.redirect('/')
-        })
-        .catch((error) => console.error(error))
+      // ...
+    })
+
+    app.all('/calendars', function (req, res, next) {
+      res.header('Access-Control-Allow-Origin', '*')
+      res.header('Access-Control-Allow-Headers', 'X-Requested-With')
+      next()
+    })
+    app.get('/calendars', async (req, res) => {
+      const data = await db.collection(MONGO_CALENDARS).find().toArray()
+      res.send(data)
+    })
+    app.post('/calendars', (req, res) => {
+      // ...
     })
 
     app.listen(3000, function () {
