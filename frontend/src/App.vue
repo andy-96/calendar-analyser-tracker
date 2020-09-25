@@ -12,18 +12,12 @@
         )
         v-toolbar-title Calendar Analyser
       v-spacer
-    h1 COoo
-    Calendar
+    router-view
 </template>
 
 <script>
-import Calendar from './components/Calendar.vue'
-
 export default {
   name: 'App',
-  components: {
-    Calendar,
-  },
 }
 </script>
 
