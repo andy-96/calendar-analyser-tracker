@@ -7,7 +7,7 @@ const { calendar } = require('googleapis/build/src/apis/calendar')
 
 const fetchCalendarsFromGoogle = async (auth) => {
   const calendar = google.calendar({ version: 'v3', auth })
-  let {
+  const {
     data: { items },
   } = await calendar.calendarList
     .list()
