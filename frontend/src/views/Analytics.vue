@@ -1,6 +1,5 @@
 <template lang="pug">
   v-data-table(
-    dense
     :headers="headers"
     :items="weeklyReviews"
   )
@@ -74,7 +73,7 @@ export default {
             }
           }
         )
-        console.log(this.headers)
+        this.headers = headers.concat(calendarHeaders)
       } catch (err) {
         console.error(`Could not generate headers due to ${err}`)
         this.headers = []
@@ -85,7 +84,7 @@ export default {
         ({ calendarWeek, startDay, endDay }) => {
           const calendarsInfo = this.calendars.map(({ name, id }) => {
             let totalDuration = 0
-            for (let i = 0; i < 2; i++) {
+            for (let i = 0; i < this.events.length; i++) {
               if ('summary' in this.events[i]) {
                 if (
                   this.events[i].organizer.email === id &&
@@ -158,6 +157,7 @@ export default {
     this.endTime = moment()
       .day('sunday')
       .week(thisWeek - this.rangeInWeeks)
+      .toDate()
 
     await Promise.all([this.getCalendars(), this.getEvents()]).then(() => {
       this.getCalendarWeeks()

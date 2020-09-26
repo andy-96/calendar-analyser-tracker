@@ -1,9 +1,6 @@
 <template lang="pug">
 v-main
 	v-row.fill-height
-		v-col.col-2
-			h1 YOOO
-		v-col.col-10
 			v-sheet(height="64")
 				v-toolbar(flat color="white")
 					v-btn(outlined class="mr-4" color="grey darken-2" @click="setToday") Today

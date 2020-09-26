@@ -21,7 +21,10 @@
           v-list-item-icon
             v-icon mdi-star
           v-list-item-title Starred
-    v-content
+      template(v-slot:append)
+        div.pa-2
+          v-btn(block) Settings
+    v-main
       v-container.px-4.py-0.fill-height(fluid)
         v-row.fill-height
             v-col

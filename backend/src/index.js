@@ -30,7 +30,6 @@ MongoClient.connect(
     })
     app.get('/events', async (req, res) => {
       await updateMongo(db, req.query.start, req.query.end)
-      console.log(req.query.start)
       const data = await db
         .collection(MONGO_EVENTS)
         .find({
