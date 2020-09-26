@@ -73,8 +73,13 @@ const saveEventsToMongo = async (mongo, eventsGoogle, calendarId) => {
     eventsMongo,
     'id'
   )
-  convertDateToISO(newEvents)
-  // TODO: convert date to ISODate so it is queryable. If "date" => allDay = True else False
+
+  // Preprocessing
+  newEvents = convertDateToISO(newEvents)
+  updatedEvents = convertDateToISO(updatedEvents)
+  newEvents = calculateEventDuration(newEvents)
+  updatedEvents = calculateEventDuration(updatedEvents)
+
   if (newEvents.length !== 0) {
     newEvents = convertGadgetPreferencesToUnderscore(newEvents)
     eventCollection
@@ -82,7 +87,6 @@ const saveEventsToMongo = async (mongo, eventsGoogle, calendarId) => {
       .catch((err) => console.error(`Could not save events due to ${err}`))
   }
   if (updatedEvents.length !== 0) {
-    console.log('UPDATED')
     updatedEvents.map(
       async (event) =>
         await eventCollection
@@ -150,22 +154,27 @@ const getUpdatedAndNewEvents = (googleEvents, mongoEvents) => {
 const convertDateToISO = (events) => {
   return events.map((event) => {
     if ('dateTime' in event.start) {
-      const start = event.start.dateTime
-      const end = event.end.dateTime
-      delete event.start.dateTime
-      delete event.end.dateTime
-      event.start.dateTime = start
-      event.end.dateTime = end
       event.start.allDay = false
       return event
     } else if ('date' in event.start) {
-      const start = event.start.date
-      const end = event.end.date
+      event.start.dateTime = event.start.date
+      event.end.dateTime = event.end.date
       delete event.start.date
       delete event.end.date
-      event.start.dateTime = start
-      event.end.dateTime = end
       event.start.allDay = true
+      return event
+    }
+  })
+}
+
+const calculateEventDuration = (events) => {
+  return events.map((event) => {
+    if (!event.start.allDay) {
+      event.duration =
+        new Date(event.end.dateTime) - new Date(event.start.dateTime)
+      return event
+    } else {
+      event.duraton = 0
       return event
     }
   })
@@ -196,4 +205,5 @@ exports.updateMongo = async (mongo, start, end) => {
     const events = await fetchEventsFromGoogle(auth, calendarId, start, end)
     await saveEventsToMongo(mongo, events, calendarId, start, end)
   })
+  return
 }

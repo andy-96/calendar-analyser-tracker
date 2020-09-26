@@ -1,17 +1,13 @@
 <template lang="pug">
-v-main
-  v-simple-table(dense)
-    template(v-slot:default)
-      thead
-        tr
-          th.text-left Name
-          th.text-left Calories
-      tbody
-        tr(v-for="({ name, id }) in calendars" :key="id")
-          td {{ name }}
+  v-data-table(
+    dense
+    :headers="headers"
+    :items="weeklyReviews"
+  )
 </template>
 
 <script>
+import moment from 'moment'
 import { mongodb } from '../utils/index'
 
 export default {
@@ -22,29 +18,125 @@ export default {
     endTime: '',
     events: [],
     calendars: [],
+    weeklyReviews: [],
+    calendarWeeks: [],
+    rangeInWeeks: 10,
+    headers: [
+      {
+        text: 'MedInnovate',
+        value: 'calendars[0].duration',
+      },
+      {
+        text: 'Arbeit',
+        value: 'calendars[7].duration',
+      },
+    ],
   }),
   methods: {
     async getEvents() {
-      const { data } = mongodb.get('/events', {
-        params: {
-          start: this.startTime,
-          end: this.endTime,
-        },
-      })
-      this.events = data
+      try {
+        const { data } = await mongodb.get('/events', {
+          params: {
+            start: this.startTime,
+            end: this.endTime,
+          },
+        })
+        this.events = data
+      } catch (err) {
+        console.error(`Could not fetch events due to ${err}`)
+      }
     },
     async getCalendars() {
-      const { data } = await mongodb.get('/calendars')
-      this.calendars = data.map(
-        ({ summary, backgroundColor, accessRole, id }) => {
+      try {
+        const { data } = await mongodb.get('/calendars')
+        this.calendars = data.map(
+          ({ summary, backgroundColor, accessRole, id }) => {
+            return {
+              id,
+              name: summary,
+              color: backgroundColor,
+              accessRole,
+            }
+          }
+        )
+      } catch (err) {
+        console.error(`Could not fetch calendars due to ${err}`)
+      }
+    },
+    createTableHeaders() {
+      try {
+        let headers = [{ text: 'Calendar Week', value: 'calendarWeek' }]
+        const calendarHeaders = this.weeklyReviews[0].calendars.map(
+          ({ name }, index) => {
+            return {
+              text: name,
+              value: `calendars[${index}].duration`,
+            }
+          }
+        )
+        console.log(this.headers)
+      } catch (err) {
+        console.error(`Could not generate headers due to ${err}`)
+        this.headers = []
+      }
+    },
+    getWeeklyReviews() {
+      this.weeklyReviews = this.calendarWeeks.map(
+        ({ calendarWeek, startDay, endDay }) => {
+          const calendarsInfo = this.calendars.map(({ name, id }) => {
+            let totalDuration = 0
+            for (let i = 0; i < 2; i++) {
+              if ('summary' in this.events[i]) {
+                if (
+                  this.events[i].organizer.email === id &&
+                  typeof this.events[i].duration === 'number' &&
+                  new Date(this.events[i].start.dateTime) >= startDay &&
+                  new Date(this.events[i].end.dateTime) < endDay
+                ) {
+                  totalDuration = totalDuration + this.events[i].duration
+                }
+              }
+            }
+            return {
+              id,
+              name,
+              duration: this.convertMilisecondsToHours(totalDuration),
+            }
+          })
           return {
-            id,
-            name: summary,
-            color: backgroundColor,
-            accessRole,
+            calendarWeek,
+            startDay,
+            endDay,
+            calendars: calendarsInfo,
           }
         }
       )
+    },
+    convertMilisecondsToHours(time) {
+      let hours = Math.floor(time / 1000 / 60 / 60)
+      let minutes = Math.floor((time - hours * 1000 * 60 * 60) / 1000 / 60)
+      // Fill up with zeros
+      if (hours < 10) {
+        hours = `0${hours}`
+      }
+      if (minutes < 10) {
+        minutes = `0${minutes}`
+      }
+      return `${hours}:${minutes}`
+    },
+    getCalendarWeeks() {
+      const thisWeek = moment(new Date()).week()
+      let calendarWeeks = []
+      for (let i = thisWeek; i > thisWeek - this.rangeInWeeks; i--) {
+        let startDay = moment().day('sunday').week(i).toDate()
+        let endDay = moment().day('saturday').week(i).toDate()
+        calendarWeeks.push({
+          calendarWeek: i,
+          startDay,
+          endDay,
+        })
+      }
+      this.calendarWeeks = calendarWeeks
     },
     getEndTime(startTime, number, dateMonthYear) {
       // number: count of days, months, year back
@@ -59,12 +151,19 @@ export default {
       }
     },
   },
-  mounted() {
+  async mounted() {
     this.today = new Date()
-    this.startTime = new Date()
-    this.endTime = this.getEndTime(new Date(), 7, 'd')
-    this.getCalendars()
-    this.getEvents()
+    this.startTime = this.today
+    const thisWeek = moment(this.startTime).week()
+    this.endTime = moment()
+      .day('sunday')
+      .week(thisWeek - this.rangeInWeeks)
+
+    await Promise.all([this.getCalendars(), this.getEvents()]).then(() => {
+      this.getCalendarWeeks()
+      this.getWeeklyReviews()
+      this.createTableHeaders()
+    })
   },
 }
 </script>
