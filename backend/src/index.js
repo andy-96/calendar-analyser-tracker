@@ -2,6 +2,8 @@ require('dotenv').config()
 const express = require('express')
 const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient
+
+const { updateMongo } = require('./googleService')
 const { MONGO_DB, MONGO_CALENDARS, MONGO_EVENTS } = require('./constants')
 const { MONGO_USERNAME, MONGO_PASSWORD } = process.env
 
@@ -10,7 +12,7 @@ const app = express()
 MongoClient.connect(
   `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/<dbname>?retryWrites=true&w=majority`,
   {
-    useUnifiedTopology: true,
+    useUnifiedTopology: true
   }
 )
   .then((client) => {
@@ -27,7 +29,38 @@ MongoClient.connect(
       next()
     })
     app.get('/events', async (req, res) => {
-      const data = await db.collection(MONGO_EVENTS).find().toArray()
+      await updateMongo(db, req.query.start, req.query.end)
+      console.log(req.query.start)
+      const data = await db
+        .collection(MONGO_EVENTS)
+        .find({
+          $expr: {
+            $and: [
+              {
+                $gte: [
+                  {
+                    $dateFromString: {
+                      dateString: '$start.dateTime'
+                    }
+                  },
+                  new Date(req.query.end)
+                ]
+              },
+              {
+                $lt: [
+                  {
+                    $dateFromString: {
+                      dateString: '$start.dateTime'
+                    }
+                  },
+                  new Date(req.query.start)
+                ]
+              }
+            ]
+          }
+        })
+        .toArray()
+      console.log(data.length)
       res.send(data)
     })
     app.post('/events', (req, res) => {
