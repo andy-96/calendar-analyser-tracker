@@ -23,7 +23,8 @@
           v-list-item-title Starred
       template(v-slot:append)
         div.pa-2
-          v-btn(block) Settings
+          router-link(:to="'/settings'")
+            v-btn(block) Settings
     v-main
       v-container.px-4.py-0.fill-height(fluid)
         v-row.fill-height
@@ -38,4 +39,7 @@ export default {
 }
 </script>
 
-<style lang="sass" scoped></style>
+<style lang="sass" scoped>
+.v-application
+  font-family: 'Helvetica Neue'
+</style>
