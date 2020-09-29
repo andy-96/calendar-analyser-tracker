@@ -9,22 +9,18 @@
           v-icon mdi-chevron-left
       v-divider
       v-list(nav dense)
-        v-list-item(link)
-          v-list-item-icon
-            v-icon mdi-folder
-          v-list-item-title My Files
-        v-list-item(link)
+        v-list-item(:to="'/analytics'")
+            v-list-item-icon
+              v-icon mdi-folder
+            v-list-item-title Analytics
+        v-list-item(:to="'/calendar'")
           v-list-item-icon
             v-icon mdi-account-multiple
-          v-list-item-title Shared with me
-        v-list-item(link)
-          v-list-item-icon
-            v-icon mdi-star
-          v-list-item-title Starred
+          v-list-item-title Calendar
       template(v-slot:append)
         div.pa-2
           router-link(:to="'/settings'")
-            v-btn(block) Settings
+            v-btn(block tile) Settings
     v-main
       v-container.px-4.py-0.fill-height(fluid)
         v-row.fill-height
