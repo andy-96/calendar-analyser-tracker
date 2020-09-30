@@ -12,6 +12,7 @@
         dense
       )
     h3.settings--subsubheadline Create new groups
+    p to be done...
     v-row
       v-spacer
       v-btn.col-md-2.ma-2(
@@ -33,6 +34,7 @@ export default {
   data: () => ({
     calendars: [],
     selectedCalendars: [],
+    userId: '',
   }),
   methods: {
     async getCalendars() {
@@ -48,21 +50,27 @@ export default {
         }
       )
     },
+    async getSettings() {
+      const { data } = await mongodb.get('/settings', {
+        params: {
+          userId: this.userId,
+        },
+      })
+      this.selectedCalendars = data[0].selectedCalendars
+    },
     async submitSettings() {
-      const userId = 'Andy-Test'
-      console.log(userId, this.selectedCalendars)
       await mongodb
         .post('/settings', {
-          params: {
-            userId,
-            selectedCalendars: this.selectedCalendars,
-          },
+          userId: this.userId,
+          selectedCalendars: this.selectedCalendars,
         })
-        .then(() => console.log('success'))
+        .then(() => alert('success'))
     },
   },
   async mounted() {
+    this.userId = 'Andy-Test'
     await this.getCalendars()
+    await this.getSettings()
   },
 }
 </script>

@@ -20,16 +20,9 @@ export default {
     weeklyReviews: [],
     calendarWeeks: [],
     rangeInWeeks: 10,
-    headers: [
-      {
-        text: 'MedInnovate',
-        value: 'calendars[0].duration',
-      },
-      {
-        text: 'Arbeit',
-        value: 'calendars[7].duration',
-      },
-    ],
+    selectedCalendars: [],
+    headers: [],
+    userId: '',
   }),
   methods: {
     async getEvents() {
@@ -48,19 +41,29 @@ export default {
     async getCalendars() {
       try {
         const { data } = await mongodb.get('/calendars')
-        this.calendars = data.map(
-          ({ summary, backgroundColor, accessRole, id }) => {
-            return {
-              id,
-              name: summary,
-              color: backgroundColor,
-              accessRole,
+        this.calendars = this.selectedCalendars.map((id) => {
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].id === id) {
+              return {
+                id,
+                name: data[i].summary,
+                color: data[i].backgroundColor,
+                accessRole: data[i].accessRole,
+              }
             }
           }
-        )
+        })
       } catch (err) {
         console.error(`Could not fetch calendars due to ${err}`)
       }
+    },
+    async getSettings() {
+      const { data } = await mongodb.get('/settings', {
+        params: {
+          userId: this.userId,
+        },
+      })
+      this.selectedCalendars = data[0].selectedCalendars
     },
     createTableHeaders() {
       try {
@@ -151,6 +154,7 @@ export default {
     },
   },
   async mounted() {
+    this.userId = 'Andy-Test'
     this.today = new Date()
     this.startTime = this.today
     const thisWeek = moment(this.startTime).week()
@@ -159,6 +163,7 @@ export default {
       .week(thisWeek - this.rangeInWeeks)
       .toDate()
 
+    await this.getSettings()
     await Promise.all([this.getCalendars(), this.getEvents()]).then(() => {
       this.getCalendarWeeks()
       this.getWeeklyReviews()

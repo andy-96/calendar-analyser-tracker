@@ -1,10 +1,16 @@
 require('dotenv').config()
+const cors = require('cors')
 const express = require('express')
 const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient
 
 const { updateMongo } = require('./googleService')
-const { MONGO_DB, MONGO_CALENDARS, MONGO_EVENTS } = require('./constants')
+const {
+  MONGO_DB,
+  MONGO_CALENDARS,
+  MONGO_EVENTS,
+  MONGO_SETTINGS
+} = require('./constants')
 const { MONGO_USERNAME, MONGO_PASSWORD } = process.env
 
 const app = express()
@@ -19,15 +25,12 @@ MongoClient.connect(
     console.log('Connected to Database')
     db = client.db(MONGO_DB)
 
+    app.use(cors())
+    app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: true }))
 
     app.get('/', (req, res) => res.send('Hi Andy'))
 
-    app.all('/events', function (req, res, next) {
-      res.header('Access-Control-Allow-Origin', '*')
-      res.header('Access-Control-Allow-Headers', 'X-Requested-With')
-      next()
-    })
     app.get('/events', async (req, res) => {
       await updateMongo(db, req.query.start, req.query.end)
       const data = await db
@@ -66,11 +69,6 @@ MongoClient.connect(
       // ...
     })
 
-    app.all('/calendars', function (req, res, next) {
-      res.header('Access-Control-Allow-Origin', '*')
-      res.header('Access-Control-Allow-Headers', 'X-Requested-With')
-      next()
-    })
     app.get('/calendars', async (req, res) => {
       const data = await db.collection(MONGO_CALENDARS).find().toArray()
       res.send(data)
@@ -79,18 +77,33 @@ MongoClient.connect(
       // ...
     })
 
-    app.all('/settings', function (req, res, next) {
-      res.header('Access-Control-Allow-Origin', '*')
-      res.header('Access-Control-Allow-Headers', 'X-Requested-With')
-      next()
-    })
     app.get('/settings', async (req, res) => {
-      const data = await db.collection(MONGO_SETTINGS).find().toArray()
+      const data = await db
+        .collection(MONGO_SETTINGS)
+        .find({
+          userId: req.query.userId
+        })
+        .toArray()
       res.send(data)
     })
-    app.post('/settings', (req, res) => {
-      console.log(req.query)
-      res.sendStatus(200)
+    app.post('/settings', async (req, res) => {
+      await db
+        .collection(MONGO_SETTINGS)
+        .updateOne(
+          {
+            userId: req.body.userId
+          },
+          {
+            $set: {
+              selectedCalendars: req.body.selectedCalendars
+            }
+          },
+          {
+            upsert: true
+          }
+        )
+        .then(() => res.json({ status: 'success' }))
+        .catch((err) => console.error(err))
     })
 
     app.listen(3000, function () {
