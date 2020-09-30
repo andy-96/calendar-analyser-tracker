@@ -79,6 +79,20 @@ MongoClient.connect(
       // ...
     })
 
+    app.all('/settings', function (req, res, next) {
+      res.header('Access-Control-Allow-Origin', '*')
+      res.header('Access-Control-Allow-Headers', 'X-Requested-With')
+      next()
+    })
+    app.get('/settings', async (req, res) => {
+      const data = await db.collection(MONGO_SETTINGS).find().toArray()
+      res.send(data)
+    })
+    app.post('/settings', (req, res) => {
+      console.log(req.query)
+      res.sendStatus(200)
+    })
+
     app.listen(3000, function () {
       console.log('listening on 3000')
     })

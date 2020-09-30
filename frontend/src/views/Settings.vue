@@ -48,8 +48,17 @@ export default {
         }
       )
     },
-    submitSettings() {
-      alert(this.selectedCalendars)
+    async submitSettings() {
+      const userId = 'Andy-Test'
+      console.log(userId, this.selectedCalendars)
+      await mongodb
+        .post('/settings', {
+          params: {
+            userId,
+            selectedCalendars: this.selectedCalendars,
+          },
+        })
+        .then(() => console.log('success'))
     },
   },
   async mounted() {
