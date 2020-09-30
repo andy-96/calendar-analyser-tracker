@@ -1,4 +1,5 @@
 <template lang="pug">
+  <!-- create custom table with expandable columns-->
   v-data-table(
     :headers="headers"
     :items="weeklyReviews"
