@@ -95,7 +95,8 @@ MongoClient.connect(
           },
           {
             $set: {
-              selectedCalendars: req.body.selectedCalendars
+              selectedCalendars: req.body.selectedCalendars,
+              calendarGroups: req.body.calendarGroups
             }
           },
           {

@@ -10,22 +10,44 @@
         :value="id"
         :label="name"
         dense
+        hide-details
       )
     h3.settings--subsubheadline Create new group
     v-text-field(
+      label="Group Name"
       append-icon="mdi-plus"
+      v-model="newGroupName"
       @click:append="clickOnAppend"
-      @click:prepend="clickOnPrepend"
     )
-    v-text-field(
-      v-for="i in calendarGroups"
-      v-model="calendarGroups[i]"
-      :value="Object.keys(calendarGroups[i])"
-      append-icon="mdi-plus"
-      prepend-icon="mdi-minus"
-      @click:append="clickOnAppend"
-      @click:prepend="clickOnPrepend"
-    )
+    p Select which calendars belongs this group
+    v-row(no-gutters)
+      v-checkbox.checkbox(
+        v-for="({ id, name }) in calendars"
+        v-model="newGroupSelectedCalendars"
+        :key="id"
+        :value="id"
+        :label="name"
+        dense
+        hide-details
+      )
+    v-container(v-for="({ groupName, selectedCalendars }, index) in calendarGroups")
+      v-text-field(
+        v-model="groupName"
+        append-icon="mdi-check"
+        prepend-icon="mdi-minus"
+        @click:append="clickOnCheck(groupName, selectedCalendars, index)"
+        @click:prepend="clickOnPrepend(index)"
+      )
+      v-row(no-gutters)
+        v-checkbox.checkbox(
+          v-for="({ id, name }) in calendars"
+          v-model="selectedCalendars"
+          :key="id"
+          :value="id"
+          :label="name"
+          dense
+          hide-details
+        )
     v-row
       v-spacer
       v-btn.col-md-2.ma-2(
@@ -45,10 +67,12 @@ import { mongodb } from '../utils/index'
 export default {
   name: 'Settings',
   data: () => ({
+    newGroupName: '',
     calendars: [],
     selectedCalendars: [],
     userId: '',
-    calendarGroups: [{ yo: [] }, { blo: [] }],
+    calendarGroups: [],
+    newGroupSelectedCalendars: [],
   }),
   methods: {
     async getCalendars() {
@@ -71,21 +95,31 @@ export default {
         },
       })
       this.selectedCalendars = data[0].selectedCalendars
+      this.calendarGroups = data[0].calendarGroups
     },
     async submitSettings() {
       await mongodb
         .post('/settings', {
           userId: this.userId,
           selectedCalendars: this.selectedCalendars,
+          calendarGroups: this.calendarGroups,
         })
         .then(() => alert('success'))
     },
-    clickOnAppend(sth) {
-      console.log(sth)
-      this.calendarGroups.unshift()
+    clickOnAppend() {
+      this.calendarGroups.unshift({
+        groupName: this.newGroupName,
+        selectedCalendars: this.newGroupSelectedCalendars,
+      })
+      this.newGroupName = ''
+      this.newGroupSelectedCalendars = []
     },
-    clickOnPrepend() {
-      alert('bla')
+    clickOnCheck(groupName, selectedCalendars, index) {
+      this.calendarGroups[index].groupName = groupName
+      this.calendarGroups[index].selectedCalendars = selectedCalendars
+    },
+    clickOnPrepend(index) {
+      this.calendarGroups.splice(index, 1)
     },
   },
   async mounted() {
@@ -98,6 +132,7 @@ export default {
 
 <style lang="sass" scoped>
 .settings--subsubheadline
+  margin-top: 10px
   margin-bottom: 10px
 
 .checkbox
