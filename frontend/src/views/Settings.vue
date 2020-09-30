@@ -11,8 +11,21 @@
         :label="name"
         dense
       )
-    h3.settings--subsubheadline Create new groups
-    p to be done...
+    h3.settings--subsubheadline Create new group
+    v-text-field(
+      append-icon="mdi-plus"
+      @click:append="clickOnAppend"
+      @click:prepend="clickOnPrepend"
+    )
+    v-text-field(
+      v-for="i in calendarGroups"
+      v-model="calendarGroups[i]"
+      :value="Object.keys(calendarGroups[i])"
+      append-icon="mdi-plus"
+      prepend-icon="mdi-minus"
+      @click:append="clickOnAppend"
+      @click:prepend="clickOnPrepend"
+    )
     v-row
       v-spacer
       v-btn.col-md-2.ma-2(
@@ -35,6 +48,7 @@ export default {
     calendars: [],
     selectedCalendars: [],
     userId: '',
+    calendarGroups: [{ yo: [] }, { blo: [] }],
   }),
   methods: {
     async getCalendars() {
@@ -65,6 +79,13 @@ export default {
           selectedCalendars: this.selectedCalendars,
         })
         .then(() => alert('success'))
+    },
+    clickOnAppend(sth) {
+      console.log(sth)
+      this.calendarGroups.unshift()
+    },
+    clickOnPrepend() {
+      alert('bla')
     },
   },
   async mounted() {
