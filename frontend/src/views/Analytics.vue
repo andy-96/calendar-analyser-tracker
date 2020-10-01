@@ -24,6 +24,7 @@ export default {
     selectedCalendars: [],
     headers: [],
     userId: '',
+    calendarGroups: [],
   }),
   methods: {
     async getEvents() {
@@ -65,6 +66,7 @@ export default {
         },
       })
       this.selectedCalendars = data[0].selectedCalendars
+      this.calendarGroups = data[0].calendarGroups
     },
     createTableHeaders() {
       try {
