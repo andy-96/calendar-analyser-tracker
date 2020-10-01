@@ -2,7 +2,7 @@
   <!-- create custom table with expandable columns-->
   v-data-table(
     :headers="headers"
-    :items="weeklyReviews"
+    :items="weeklyCalendarReviews"
   )
 </template>
 
@@ -18,7 +18,7 @@ export default {
     endTime: '',
     events: [],
     calendars: [],
-    weeklyReviews: [],
+    weeklyCalendarReviews: [],
     calendarWeeks: [],
     rangeInWeeks: 10,
     selectedCalendars: [],
@@ -71,11 +71,11 @@ export default {
     createTableHeaders() {
       try {
         let headers = [{ text: 'Calendar Week', value: 'calendarWeek' }]
-        const calendarHeaders = this.weeklyReviews[0].calendars.map(
+        const calendarHeaders = this.weeklyCalendarReviews[0].calendars.map(
           ({ name }, index) => {
             return {
               text: name,
-              value: `calendars[${index}].duration`,
+              value: `calendars[${index}].durationString`,
             }
           }
         )
@@ -86,36 +86,62 @@ export default {
       }
     },
     getWeeklyReviews() {
-      this.weeklyReviews = this.calendarWeeks.map(
+      this.weeklyCalendarReviews = this.calendarWeeks.map(
         ({ calendarWeek, startDay, endDay }) => {
-          const calendarsInfo = this.calendars.map(({ name, id }) => {
-            let totalDuration = 0
-            for (let i = 0; i < this.events.length; i++) {
-              if ('summary' in this.events[i]) {
-                if (
-                  this.events[i].organizer.email === id &&
-                  typeof this.events[i].duration === 'number' &&
-                  new Date(this.events[i].start.dateTime) >= startDay &&
-                  new Date(this.events[i].end.dateTime) < endDay
-                ) {
-                  totalDuration = totalDuration + this.events[i].duration
-                }
-              }
-            }
-            return {
-              id,
-              name,
-              duration: this.convertMilisecondsToHours(totalDuration),
-            }
-          })
+          const calendarsInfo = this.getWeeklyCalendarReviews(startDay, endDay)
+          const groupsInfo = this.getWeeklyGroupReviews(calendarsInfo)
           return {
             calendarWeek,
             startDay,
             endDay,
-            calendars: calendarsInfo,
+            calendars: [...groupsInfo, ...calendarsInfo],
           }
         }
       )
+    },
+    getWeeklyCalendarReviews(startDay, endDay) {
+      return this.calendars.map(({ name, id }) => {
+        let totalDuration = 0
+        for (let i = 0; i < this.events.length; i++) {
+          if ('summary' in this.events[i]) {
+            if (
+              this.events[i].organizer.email === id &&
+              typeof this.events[i].duration === 'number' &&
+              new Date(this.events[i].start.dateTime) >= startDay &&
+              new Date(this.events[i].end.dateTime) < endDay
+            ) {
+              totalDuration = totalDuration + this.events[i].duration
+            }
+          }
+        }
+        return {
+          id,
+          name,
+          duration: totalDuration,
+          durationString: this.convertMilisecondsToHours(totalDuration),
+        }
+      })
+    },
+    getWeeklyGroupReviews(calendarsInfo) {
+      return this.calendarGroups.map(({ groupName, selectedCalendars }) => {
+        let duration = selectedCalendars.map((calendarId) => {
+          for (let i = 0; i < calendarsInfo.length; i++) {
+            if (calendarId === calendarsInfo[i].id) {
+              console.log(calendarsInfo[i].name, calendarsInfo[i].duration)
+              return calendarsInfo[i].duration
+            }
+          }
+          console.log(calendarId)
+        })
+        console.log(groupName, duration)
+        duration = duration.reduce((a, b) => a + b, 0)
+        return {
+          id: groupName,
+          name: groupName,
+          duration,
+          durationString: this.convertMilisecondsToHours(duration),
+        }
+      })
     },
     convertMilisecondsToHours(time) {
       let hours = Math.floor(time / 1000 / 60 / 60)

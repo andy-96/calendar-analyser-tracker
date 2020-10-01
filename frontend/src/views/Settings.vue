@@ -30,7 +30,7 @@
         dense
         hide-details
       )
-    v-container(v-for="({ groupName, selectedCalendars }, index) in calendarGroups")
+    v-container(v-for="({ groupName, selectedCalendars }, index) in calendarGroups" :key='index')
       v-text-field(
         v-model="groupName"
         append-icon="mdi-check"
