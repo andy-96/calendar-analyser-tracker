@@ -16,7 +16,7 @@ const { MONGO_USERNAME, MONGO_PASSWORD } = process.env
 const app = express()
 
 MongoClient.connect(
-  `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/<dbname>?retryWrites=true&w=majority`,
+  `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/${MONGO_DB}?retryWrites=true&w=majority`,
   {
     useUnifiedTopology: true
   }
@@ -32,7 +32,7 @@ MongoClient.connect(
     app.get('/', (req, res) => res.send('Hi Andy'))
 
     app.get('/events', async (req, res) => {
-      await updateMongo(db, req.query.start, req.query.end)
+      // TODO: await updateMongo(db, req.query.start, req.query.end)
       const data = await db
         .collection(MONGO_EVENTS)
         .find({
@@ -62,7 +62,6 @@ MongoClient.connect(
           }
         })
         .toArray()
-      console.log(data.length)
       res.send(data)
     })
     app.post('/events', (req, res) => {

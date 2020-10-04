@@ -127,13 +127,10 @@ export default {
         let duration = selectedCalendars.map((calendarId) => {
           for (let i = 0; i < calendarsInfo.length; i++) {
             if (calendarId === calendarsInfo[i].id) {
-              console.log(calendarsInfo[i].name, calendarsInfo[i].duration)
               return calendarsInfo[i].duration
             }
           }
-          console.log(calendarId)
         })
-        console.log(groupName, duration)
         duration = duration.reduce((a, b) => a + b, 0)
         return {
           id: groupName,
