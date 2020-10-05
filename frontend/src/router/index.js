@@ -7,7 +7,7 @@ import Settings from '@/views/Settings'
 
 Vue.use(Router)
 
-export default new Router({
+let router = new Router({
   routes: [
     {
       path: '/login',
@@ -23,6 +23,9 @@ export default new Router({
       path: '/analytics',
       name: 'Analytics',
       component: Analytics,
+      meta: {
+        requiresAuth: true,
+      },
     },
     {
       path: '/settings',
@@ -31,3 +34,12 @@ export default new Router({
     },
   ],
 })
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    console.log('You are not authed')
+    next()
+  }
+})
+
+export default router
