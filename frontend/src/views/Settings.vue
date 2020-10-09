@@ -123,6 +123,7 @@ export default {
     },
   },
   async mounted() {
+    // TODO: Change userId
     this.userId = 'Andy-Test'
     await this.getCalendars()
     await this.getSettings()

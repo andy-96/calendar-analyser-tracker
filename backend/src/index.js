@@ -1,17 +1,29 @@
 require('dotenv').config()
 const cors = require('cors')
 const express = require('express')
+const session = require('express-session')
+const MemoryStore = require('memorystore')(session)
 const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient
+const passport = require('passport')
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
 
 const { updateMongo } = require('./googleService')
 const {
   MONGO_DB,
   MONGO_CALENDARS,
   MONGO_EVENTS,
-  MONGO_SETTINGS
+  MONGO_SETTINGS,
+  GOOGLE_SCOPES,
+  MONGO_USERS
 } = require('./constants')
-const { MONGO_USERNAME, MONGO_PASSWORD } = process.env
+const { connect } = require('mongodb')
+const {
+  MONGO_USERNAME,
+  MONGO_PASSWORD,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET
+} = process.env
 
 const app = express()
 
@@ -28,8 +40,81 @@ MongoClient.connect(
     app.use(cors())
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: true }))
+    // TODO: change secret
+    app.use(
+      session({
+        store: new MemoryStore({
+          checkPeriod: 1000 * 60 * 60 * 24
+        }),
+        secret: 'something',
+        resave: false,
+        saveUninitialized: false
+      })
+    )
+    app.use(passport.initialize())
+    app.use(passport.session())
+
+    passport.serializeUser((user, done) => done(null, user))
+    passport.deserializeUser((user, done) => done(null, user))
+
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: GOOGLE_CLIENT_ID,
+          clientSecret: GOOGLE_CLIENT_SECRET,
+          callbackURL: 'http://localhost:3030/auth/google/callback'
+        },
+        async (accessToken, refreshToken, token, profile, done) => {
+          // TODO: change userId
+          // await db.collection(MONGO_USERS).updateOne(
+          //   {
+          //     userId: 'Andy-Test'
+          //   },
+          //   {
+          //     $set: {
+          //       google_access_token: accessToken,
+          //       google_refresh_token: refreshToken,
+          //       expires_in: token.expires_in
+          //     }
+          //   },
+          //   {
+          //     upsert: true
+          //   }
+          // )
+          return done(null, {
+            google_access_token: accessToken,
+            google_refresh_token: refreshToken,
+            expires_in: token.expires_in,
+            profile
+          })
+        }
+      )
+    )
 
     app.get('/', (req, res) => res.send('Hi Andy'))
+
+    app.get(
+      '/auth/google',
+      passport.authenticate('google', {
+        accessType: 'offline',
+        prompt: 'consent',
+        scope: [
+          'profile',
+          'email',
+          'https://www.googleapis.com/auth/calendar.readonly',
+          'https://www.googleapis.com/auth/plus.login'
+        ]
+      })
+    )
+    app.get(
+      '/auth/google/callback',
+      passport.authenticate('google', { failureRedirect: '/login' }),
+      (req, res) => {
+        console.log(req.user)
+        console.log(req.isAuthenticated())
+        res.redirect('http://localhost:8080/#/analytics')
+      }
+    )
 
     app.get('/events', async (req, res) => {
       // TODO: await updateMongo(db, req.query.start, req.query.end)
@@ -106,8 +191,8 @@ MongoClient.connect(
         .catch((err) => console.error(err))
     })
 
-    app.listen(3000, function () {
-      console.log('listening on 3000')
+    app.listen(3030, function () {
+      console.log('listening on 3030')
     })
   })
   .catch((err) => console.error(err))

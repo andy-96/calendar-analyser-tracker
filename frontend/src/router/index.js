@@ -23,9 +23,6 @@ let router = new Router({
       path: '/analytics',
       name: 'Analytics',
       component: Analytics,
-      meta: {
-        requiresAuth: true,
-      },
     },
     {
       path: '/settings',
@@ -35,11 +32,12 @@ let router = new Router({
   ],
 })
 
-router.beforeEach((to, from, next) => {
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    console.log('You are not authed')
-    next()
-  }
-})
+// router.beforeEach((to, from, next) => {
+//   console.log(to)
+//   if (to.matched.some((record) => record.meta.requiresAuth)) {
+//     console.log('You are not authed')
+//     next()
+//   }
+// })
 
 export default router
