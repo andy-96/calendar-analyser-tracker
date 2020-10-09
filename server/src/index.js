@@ -51,7 +51,7 @@ MongoClient.connect(
     app.use(passport.initialize())
     app.use(passport.session())
 
-    passport.serializeUser((user, done) => done(null, user))
+    passport.serializeUser((user, done) => done(null, user.id))
     passport.deserializeUser((user, done) => done(null, user))
 
     passport.use(
@@ -78,7 +78,7 @@ MongoClient.connect(
     app.get('/is-authenticated', (req, res) => {
       console.log(req.user)
       console.log(req.isAuthenticated())
-      if (req.isAuthenticated()) {
+      if (typeof req.user !== 'undefined') {
         res.send(true)
       }
       res.send(false)

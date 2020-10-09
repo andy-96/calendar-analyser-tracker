@@ -1,35 +1,24 @@
 {
   "name": "backend",
-  "version": "0.0.1",
-  "description": "This is the backend of the calendar analytics tracker",
-  "main": "index.js",
-  "repository": "https://github.com/andy-96/calendar-analyser-tracker.git",
-  "author": "Andy Chen",
-  "license": "MIT",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nodemon ./bin/www"
+  },
   "dependencies": {
-    "body-parser": "^1.19.0",
+    "cookie-parser": "~1.4.4",
+    "cookie-session": "^1.4.0",
     "cors": "^2.8.5",
+    "debug": "~2.6.9",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "express-session": "^1.17.1",
-    "googleapis": "39",
-    "memorystore": "^1.6.2",
-    "mongodb": "^3.6.0",
+    "ejs": "~2.6.1",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "morgan": "~1.9.1",
     "passport": "^0.4.1",
     "passport-google-oauth": "^2.0.0"
   },
-  "scripts": {
-    "start": "nodemon ./src/index.js"
-  },
   "devDependencies": {
-    "husky": "^4.3.0",
-    "nodemon": "^2.0.4",
-    "prettier": "2.1.1",
-    "pretty-quick": "^3.0.2"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pretty-quick --staged"
-    }
+    "nodemon": "^2.0.4"
   }
 }
