@@ -43,12 +43,9 @@ MongoClient.connect(
     // TODO: change secret
     app.use(
       session({
-        store: new MemoryStore({
-          checkPeriod: 1000 * 60 * 60 * 24
-        }),
         secret: 'something',
         resave: false,
-        saveUninitialized: false
+        saveUninitialized: true
       })
     )
     app.use(passport.initialize())
@@ -65,33 +62,27 @@ MongoClient.connect(
           callbackURL: 'http://localhost:3030/auth/google/callback'
         },
         async (accessToken, refreshToken, token, profile, done) => {
-          // TODO: change userId
-          // await db.collection(MONGO_USERS).updateOne(
-          //   {
-          //     userId: 'Andy-Test'
-          //   },
-          //   {
-          //     $set: {
-          //       google_access_token: accessToken,
-          //       google_refresh_token: refreshToken,
-          //       expires_in: token.expires_in
-          //     }
-          //   },
-          //   {
-          //     upsert: true
-          //   }
-          // )
           return done(null, {
-            google_access_token: accessToken,
-            google_refresh_token: refreshToken,
-            expires_in: token.expires_in,
-            profile
+            provider: 'google',
+            id: profile.id,
+            displayName: profile.displayName,
+            accessToken,
+            refreshToken
           })
         }
       )
     )
 
     app.get('/', (req, res) => res.send('Hi Andy'))
+
+    app.get('/is-authenticated', (req, res) => {
+      console.log(req.user)
+      console.log(req.isAuthenticated())
+      if (req.isAuthenticated()) {
+        res.send(true)
+      }
+      res.send(false)
+    })
 
     app.get(
       '/auth/google',
