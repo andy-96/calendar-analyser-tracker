@@ -1,6 +1,6 @@
-var express = require('express');
-var router = express.Router();
-var passport = require('passport');
+var express = require('express')
+var router = express.Router()
+var passport = require('passport')
 
 router.get('/check', (req, res) => {
   console.log(req.user)

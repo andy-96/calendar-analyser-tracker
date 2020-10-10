@@ -13,12 +13,22 @@
     "dotenv": "^8.2.0",
     "ejs": "~2.6.1",
     "express": "~4.16.1",
+    "googleapis": "^61.0.0",
     "http-errors": "~1.6.3",
+    "mongoose": "^5.10.9",
     "morgan": "~1.9.1",
     "passport": "^0.4.1",
     "passport-google-oauth": "^2.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "husky": "^4.3.0",
+    "nodemon": "^2.0.4",
+    "prettier": "^2.1.2",
+    "pretty-quick": "^3.0.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
   }
 }

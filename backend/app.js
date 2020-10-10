@@ -1,57 +1,65 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var cookieSession = require('cookie-session');
-var passport = require('passport');
-const passportSetup = require('./config/passport');
+require('dotenv').config()
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const cookieSession = require('cookie-session')
+const passport = require('passport')
+const passportSetup = require('./config/passport')
+const mongoose = require('mongoose')
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var authRouter = require('./routes/auth/');
+const indexRouter = require('./routes/index')
+const authRouter = require('./routes/auth/auth-routes')
+const eventRouter = require('./routes/events/event-routes')
+const calendarRouter = require('./routes/calendars/calendar-routes')
+const settingsRouter = require('./routes/settings/settings-routes')
 
-var app = express();
+const { MONGO_DB } = require('./constants')
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+const { MONGO_USERNAME, MONGO_PASSWORD } = process.env
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+const app = express()
+
+app.use(logger('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
+app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(
   cookieSession({
     maxAge: 24 * 60 * 60 * 1000,
-    keys: ["qwefgfds"]
+    keys: ['qwefgfds']
   })
-);
+)
 
 // initialize passport
-app.use(passport.initialize());
-app.use(passport.session());
-app.use('/auth', authRouter);
+app.use(passport.initialize())
+app.use(passport.session())
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/', indexRouter)
+app.use('/auth', authRouter)
+app.use('/events', eventRouter)
+app.use('/calendars', calendarRouter)
+app.use('/settings', settingsRouter)
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+app.use(function (req, res, next) {
+  next(createError(404))
+})
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+// To setup mongoose connection
+mongoose.connect(
+  `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@calendar-analyser-track.uaqxp.mongodb.net/${MONGO_DB}?retryWrites=true&w=majority`,
+  { useNewUrlParser: true, useUnifiedTopology: true }
+)
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+var db = mongoose.connection
+db.once('open', function () {
+  console.log('Connection to MongoDB successful...')
+}).on('error', function (error) {
+  console.log('MongoDB connection error: ', error)
+})
 
-module.exports = app;
+module.exports = app
