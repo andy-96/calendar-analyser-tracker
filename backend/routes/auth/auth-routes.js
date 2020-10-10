@@ -3,12 +3,11 @@ var router = express.Router()
 var passport = require('passport')
 
 router.get('/check', (req, res) => {
-  console.log(req.user)
-  console.log(req.isAuthenticated())
   if (typeof req.user !== 'undefined') {
-    res.send(true)
+    res.send({ msg: true })
+  } else {
+    res.send({ msg: false })
   }
-  res.send(false)
 })
 
 router.get(
@@ -24,14 +23,18 @@ router.get(
     ]
   })
 )
+
 router.get(
   '/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
-    console.log(req.user)
-    console.log(req.isAuthenticated())
     res.redirect('http://localhost:8080/#/analytics')
   }
 )
+
+router.get('/logout', (req, res, next) => {
+  req.logout()
+  res.json({ msg: 'Logged out' })
+})
 
 module.exports = router

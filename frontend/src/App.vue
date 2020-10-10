@@ -21,6 +21,8 @@
         div.pa-2
           router-link(:to="'/settings'")
             v-btn(block tile) Settings
+        div.pa-2
+          v-btn(block tile @click="onClickLogout") Log Out
     v-main
       v-container.px-4.py-0.fill-height(fluid)
         v-row.fill-height
@@ -30,8 +32,18 @@
 </template>
 
 <script>
+import { mongodb } from './utils/index'
+
 export default {
   name: 'App',
+  methods: {
+    async onClickLogout() {
+      const {
+        data: { msg },
+      } = await mongodb.get('/auth/logout')
+      console.log(msg)
+    },
+  },
 }
 </script>
 

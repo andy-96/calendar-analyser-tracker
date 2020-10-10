@@ -30,9 +30,12 @@ let router = new Router({
 
 router.beforeEach(async (to, from, next) => {
   if (to.name !== 'Login') {
-    const { data: isAuthenticated } = await mongodb.get('/is-authenticated')
+    const {
+      data: { msg: isAuthenticated },
+    } = await mongodb.get('/auth/check')
+    console.log(isAuthenticated)
     if (!isAuthenticated) {
-      window.location = 'http://localhost:3030/auth/google'
+      window.location = 'http://localhost:3000/auth/google'
     }
     next()
   }

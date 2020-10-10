@@ -4,7 +4,6 @@ const { Event } = require('../../models/index')
 
 router.get('/', async (req, res) => {
   // TODO: await updateMongo(db, req.query.start, req.query.end)
-  console.log(Event)
   const data = await Event.find({
     $expr: {
       $and: [

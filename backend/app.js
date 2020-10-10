@@ -8,6 +8,7 @@ const cookieSession = require('cookie-session')
 const passport = require('passport')
 const passportSetup = require('./config/passport')
 const mongoose = require('mongoose')
+const cors = require('cors')
 
 const indexRouter = require('./routes/index')
 const authRouter = require('./routes/auth/auth-routes')
@@ -16,11 +17,17 @@ const calendarRouter = require('./routes/calendars/calendar-routes')
 const settingsRouter = require('./routes/settings/settings-routes')
 
 const { MONGO_DB } = require('./constants')
-
 const { MONGO_USERNAME, MONGO_PASSWORD } = process.env
 
 const app = express()
 
+app.use(
+  cors({
+    origin: true,
+    methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
+    credentials: true
+  })
+)
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
