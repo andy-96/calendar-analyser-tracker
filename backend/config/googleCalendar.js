@@ -1,7 +1,31 @@
+require('dotenv').config()
 const { google } = require('googleapis')
 
-const { googleAuth } = require('./utils')
 const { MONGO_CALENDARS, MONGO_EVENTS } = require('../constants')
+
+const { CLIENT_ID, CLIENT_SECRET, REDIRECT_URIS } = process.env
+
+const googleAuth = async () => {
+  const oAuth2Client = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REDIRECT_URIS
+  )
+
+  let token = { expiry_date: 0 }
+  if (fs.existsSync(GOOGLE_TOKEN_PATH)) {
+    token = JSON.parse(fs.readFileSync(GOOGLE_TOKEN_PATH))
+  }
+
+  const today = Date.now()
+  if (token.expiry_date - today < 0) {
+    console.log('Token is expired')
+    token = await getAccessToken(oAuth2Client)
+  }
+  oAuth2Client.setCredentials(token)
+
+  return oAuth2Client
+}
 
 const fetchCalendarsFromGoogle = async (auth) => {
   const calendar = google.calendar({ version: 'v3', auth })
@@ -62,9 +86,8 @@ const fetchEventsFromGoogle = async (auth, calendarId, start, end) => {
 }
 
 const saveEventsToMongo = async (mongo, eventsGoogle, calendarId) => {
-  const eventCollection = mongo.collection(MONGO_EVENTS)
   // TODO: specify date to be more performant
-  const eventsMongo = await eventCollection.find().toArray()
+  const eventsMongo = await mongo.find()
 
   // Only add or update items otherwise do nothing
   let { updatedEvents, newEvents } = getUpdatedAndNewEvents(

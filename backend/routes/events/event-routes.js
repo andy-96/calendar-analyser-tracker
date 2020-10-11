@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const { Event } = require('../../models/index')
+const { updateMongo } = require('../../config/googleCalendar')
 
 router.get('/', async (req, res) => {
-  // TODO: await updateMongo(db, req.query.start, req.query.end)
+  // TODO: await updateMongo(Event, req.query.start, req.query.end)
   const data = await Event.find({
     $expr: {
       $and: [

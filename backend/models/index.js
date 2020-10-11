@@ -45,10 +45,15 @@ const eventSchema = new Schema({
 
 exports.Event = mongoose.model('events', eventSchema)
 
-const settingsSchema = new Schema({
+const userSchema = new Schema({
   userId: String,
+  google: {
+    googleId: String,
+    googleAccessToken: String,
+    googleRefreshToken: String
+  },
   calendarGroups: Array,
   selectedCalendars: Array
 })
 
-exports.Settings = mongoose.model('settings', settingsSchema)
+exports.User = mongoose.model('user', userSchema)

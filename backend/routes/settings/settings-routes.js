@@ -1,15 +1,15 @@
 const express = require('express')
 const router = express.Router()
-const { Settings } = require('../../models/index')
+const { User } = require('../../models/index')
 
 router.get('/', async (req, res) => {
-  const data = await Settings.find({
+  const data = await User.find({
     userId: req.query.userId
   })
   res.send(data)
 })
 router.post('/', async (req, res) => {
-  await Settings.updateOne(
+  await User.updateOne(
     {
       userId: req.body.userId
     },
