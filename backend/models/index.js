@@ -51,7 +51,8 @@ const userSchema = new Schema({
   googleAccessToken: String,
   googleRefreshToken: String,
   calendarGroups: Array,
-  selectedCalendars: Array
+  selectedCalendars: Array,
+  lastGoogleFetch: Date
 })
 
 exports.User = mongoose.model('user', userSchema)

@@ -1,15 +1,17 @@
 const express = require('express')
 const router = express.Router()
-const { Event } = require('../../models/index')
+const { Event, User } = require('../../models/index')
 const { updateMongo } = require('../../config/googleCalendar')
 
 router.get('/', async (req, res) => {
-  updateMongo(
-    req.query.start,
-    req.query.end,
-    req.user.googleAccessToken,
-    req.user.googleRefreshToken
-  )
+  if (req.query.fetchFromGoogle) {
+    await updateMongo(
+      req.query.start,
+      req.query.end,
+      req.user.googleAccessToken,
+      req.user.googleRefreshToken
+    )
+  }
   const data = await Event.find({
     $expr: {
       $and: [
@@ -36,6 +38,15 @@ router.get('/', async (req, res) => {
       ]
     }
   })
+  console.log(req.user.googleId)
+  await User.findOneAndUpdate(
+    {
+      googleId: req.user.googleId
+    },
+    {
+      lastGoogleFetch: new Date()
+    }
+  )
   res.send(data)
 })
 

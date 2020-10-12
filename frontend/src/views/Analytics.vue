@@ -32,6 +32,7 @@ export default {
           params: {
             start: this.startTime,
             end: this.endTime,
+            fetchFromGoogle: true,
           },
         })
         this.events = data
