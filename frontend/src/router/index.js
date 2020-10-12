@@ -1,12 +1,13 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import { mongodb } from '../utils/index'
 import Calendar from '@/views/Calendar'
 import Analytics from '@/views/Analytics'
 import Settings from '@/views/Settings'
 
 Vue.use(Router)
 
-export default new Router({
+let router = new Router({
   routes: [
     {
       path: '/calendar',
@@ -25,3 +26,18 @@ export default new Router({
     },
   ],
 })
+
+router.beforeEach(async (to, from, next) => {
+  if (to.name !== 'Login') {
+    const {
+      data: { msg: isAuthenticated },
+    } = await mongodb.get('/auth/check')
+    if (!isAuthenticated) {
+      window.location = 'http://localhost:3000/auth/google'
+    }
+    next()
+  }
+  next()
+})
+
+export default router

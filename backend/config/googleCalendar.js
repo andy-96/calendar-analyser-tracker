@@ -1,8 +1,22 @@
+require('dotenv').config()
 const { google } = require('googleapis')
+const { Event, Calendar } = require('../models')
 
-const { googleAuth } = require('./utils')
-const { MONGO_CALENDARS, MONGO_EVENTS } = require('./constants')
-const { calendar } = require('googleapis/build/src/apis/calendar')
+const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIRECT_URIS } = process.env
+
+const googleAuth = async (accessToken, refreshToken) => {
+  const oAuth2Client = new google.auth.OAuth2(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    REDIRECT_URIS
+  )
+  oAuth2Client.setCredentials({
+    access_token: accessToken,
+    refresh_token: refreshToken
+  })
+
+  return oAuth2Client
+}
 
 const fetchCalendarsFromGoogle = async (auth) => {
   const calendar = google.calendar({ version: 'v3', auth })
@@ -14,9 +28,8 @@ const fetchCalendarsFromGoogle = async (auth) => {
   return items
 }
 
-const saveCalendarsToMongo = async (mongo, calendarsGoogle) => {
-  const calendarCollection = mongo.collection(MONGO_CALENDARS)
-  const calendarsMongo = await calendarCollection.find().toArray()
+const saveCalendarsToMongo = async (calendarsGoogle) => {
+  const calendarsMongo = await Calendar.find()
 
   // Only add or update items otherwise do nothing
   const { updatedCalendars, newCalendars } = getUpdatedAndNewCalendars(
@@ -25,18 +38,19 @@ const saveCalendarsToMongo = async (mongo, calendarsGoogle) => {
     'id'
   )
   if (newCalendars.length !== 0) {
-    calendarCollection
-      .insertMany(newCalendars)
-      .catch((err) => console.error(`Could not save calendar due to ${err}`))
+    Calendar.insertMany(newCalendars).catch((err) =>
+      console.error(`Could not save calendar due to ${err}`)
+    )
   }
   if (updatedCalendars.length !== 0) {
     updatedCalendars.map(
       async (calendar) =>
-        await calendarCollection
-          .updateOne({ id: calendar['id'] }, { $set: calendar })
-          .catch((err) =>
-            console.error(`Could not save calendars due to ${err}`)
-          )
+        await Calendar.updateOne(
+          { id: calendar['id'] },
+          { $set: calendar }
+        ).catch((err) =>
+          console.error(`Could not save calendars due to ${err}`)
+        )
     )
   }
   return console.log(
@@ -62,10 +76,9 @@ const fetchEventsFromGoogle = async (auth, calendarId, start, end) => {
   return items
 }
 
-const saveEventsToMongo = async (mongo, eventsGoogle, calendarId) => {
-  const eventCollection = mongo.collection(MONGO_EVENTS)
+const saveEventsToMongo = async (eventsGoogle, calendarId) => {
   // TODO: specify date to be more performant
-  const eventsMongo = await eventCollection.find().toArray()
+  const eventsMongo = await Event.find()
 
   // Only add or update items otherwise do nothing
   let { updatedEvents, newEvents } = getUpdatedAndNewEvents(
@@ -82,16 +95,17 @@ const saveEventsToMongo = async (mongo, eventsGoogle, calendarId) => {
 
   if (newEvents.length !== 0) {
     newEvents = convertGadgetPreferencesToUnderscore(newEvents)
-    eventCollection
-      .insertMany(newEvents)
-      .catch((err) => console.error(`Could not save events due to ${err}`))
+    Event.insertMany(newEvents).catch((err) =>
+      console.error(`Could not save events due to ${err}`)
+    )
   }
   if (updatedEvents.length !== 0) {
     updatedEvents.map(
       async (event) =>
-        await eventCollection
-          .updateOne({ id: event['id'] }, { $set: event })
-          .catch((err) => console.error(`Could not save events due to ${err}`))
+        await Event.updateOne(
+          { id: event['id'] },
+          { $set: event }
+        ).catch((err) => console.error(`Could not save events due to ${err}`))
     )
   }
   return console.log(
@@ -196,14 +210,14 @@ const convertGadgetPreferencesToUnderscore = (events) => {
   })
 }
 
-exports.updateMongo = async (mongo, start, end) => {
-  const auth = await googleAuth()
+exports.updateMongo = async (start, end, accessToken, refreshToken) => {
+  const auth = await googleAuth(accessToken, refreshToken)
   const calendars = await fetchCalendarsFromGoogle(auth)
-  await saveCalendarsToMongo(mongo, calendars)
+  await saveCalendarsToMongo(calendars)
 
   calendars.map(async ({ id: calendarId }) => {
     const events = await fetchEventsFromGoogle(auth, calendarId, start, end)
-    await saveEventsToMongo(mongo, events, calendarId, start, end)
+    await saveEventsToMongo(events, calendarId, start, end)
   })
   return
 }

@@ -23,7 +23,6 @@ export default {
     rangeInWeeks: 10,
     selectedCalendars: [],
     headers: [],
-    userId: '',
     calendarGroups: [],
   }),
   methods: {
@@ -33,6 +32,7 @@ export default {
           params: {
             start: this.startTime,
             end: this.endTime,
+            fetchFromGoogle: true,
           },
         })
         this.events = data
@@ -60,11 +60,7 @@ export default {
       }
     },
     async getSettings() {
-      const { data } = await mongodb.get('/settings', {
-        params: {
-          userId: this.userId,
-        },
-      })
+      const { data } = await mongodb.get('/settings')
       this.selectedCalendars = data[0].selectedCalendars
       this.calendarGroups = data[0].calendarGroups
     },
@@ -180,7 +176,6 @@ export default {
     },
   },
   async mounted() {
-    this.userId = 'Andy-Test'
     this.today = new Date()
     this.startTime = this.today
     const thisWeek = moment(this.startTime).week()

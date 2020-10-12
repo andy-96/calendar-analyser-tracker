@@ -70,7 +70,6 @@ export default {
     newGroupName: '',
     calendars: [],
     selectedCalendars: [],
-    userId: '',
     calendarGroups: [],
     newGroupSelectedCalendars: [],
   }),
@@ -89,18 +88,13 @@ export default {
       )
     },
     async getSettings() {
-      const { data } = await mongodb.get('/settings', {
-        params: {
-          userId: this.userId,
-        },
-      })
+      const { data } = await mongodb.get('/settings')
       this.selectedCalendars = data[0].selectedCalendars
       this.calendarGroups = data[0].calendarGroups
     },
     async submitSettings() {
       await mongodb
         .post('/settings', {
-          userId: this.userId,
           selectedCalendars: this.selectedCalendars,
           calendarGroups: this.calendarGroups,
         })
@@ -123,7 +117,6 @@ export default {
     },
   },
   async mounted() {
-    this.userId = 'Andy-Test'
     await this.getCalendars()
     await this.getSettings()
   },
