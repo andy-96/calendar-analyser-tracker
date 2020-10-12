@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import { mongodb } from '../utils/index'
-//import Login from '@/views/Login'
 import Calendar from '@/views/Calendar'
 import Analytics from '@/views/Analytics'
 import Settings from '@/views/Settings'
