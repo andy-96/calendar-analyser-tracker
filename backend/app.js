@@ -16,8 +16,7 @@ const eventRouter = require('./routes/events/event-routes')
 const calendarRouter = require('./routes/calendars/calendar-routes')
 const settingsRouter = require('./routes/settings/settings-routes')
 
-const { MONGO_DB } = require('./constants')
-const { MONGO_USERNAME, MONGO_PASSWORD } = process.env
+const { MONGO_DB, MONGO_USERNAME, MONGO_PASSWORD } = process.env
 
 const app = express()
 

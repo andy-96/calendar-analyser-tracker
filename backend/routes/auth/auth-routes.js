@@ -1,6 +1,9 @@
-var express = require('express')
-var router = express.Router()
-var passport = require('passport')
+require('dotenv').config()
+const express = require('express')
+const router = express.Router()
+const passport = require('passport')
+
+const { GOOGLE_SCOPES, FRONTEND_BASEURL } = process.env
 
 router.get('/check', (req, res) => {
   if (typeof req.user !== 'undefined') {
@@ -15,12 +18,7 @@ router.get(
   passport.authenticate('google', {
     accessType: 'offline',
     prompt: 'consent',
-    scope: [
-      'profile',
-      'email',
-      'https://www.googleapis.com/auth/calendar.readonly',
-      'https://www.googleapis.com/auth/plus.login'
-    ]
+    scope: GOOGLE_SCOPES
   })
 )
 
@@ -28,7 +26,7 @@ router.get(
   '/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
-    res.redirect('http://localhost:8080/#/analytics')
+    res.redirect(`${FRONTEND_BASEURL}/#/analytics`)
   }
 )
 

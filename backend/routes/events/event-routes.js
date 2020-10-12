@@ -4,7 +4,12 @@ const { Event } = require('../../models/index')
 const { updateMongo } = require('../../config/googleCalendar')
 
 router.get('/', async (req, res) => {
-  // TODO: await updateMongo(Event, req.query.start, req.query.end)
+  updateMongo(
+    req.query.start,
+    req.query.end,
+    req.user.googleAccessToken,
+    req.user.googleRefreshToken
+  )
   const data = await Event.find({
     $expr: {
       $and: [

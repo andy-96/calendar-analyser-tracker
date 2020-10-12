@@ -47,11 +47,9 @@ exports.Event = mongoose.model('events', eventSchema)
 
 const userSchema = new Schema({
   userId: String,
-  google: {
-    googleId: String,
-    googleAccessToken: String,
-    googleRefreshToken: String
-  },
+  googleId: String,
+  googleAccessToken: String,
+  googleRefreshToken: String,
   calendarGroups: Array,
   selectedCalendars: Array
 })
