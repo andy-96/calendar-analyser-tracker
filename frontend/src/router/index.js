@@ -33,7 +33,6 @@ router.beforeEach(async (to, from, next) => {
     const {
       data: { msg: isAuthenticated },
     } = await mongodb.get('/auth/check')
-    console.log(isAuthenticated)
     if (!isAuthenticated) {
       window.location = 'http://localhost:3000/auth/google'
     }

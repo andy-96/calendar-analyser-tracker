@@ -4,23 +4,20 @@ const { User } = require('../../models/index')
 
 router.get('/', async (req, res) => {
   const data = await User.find({
-    userId: req.query.userId
+    googleId: req.user.googleId
   })
   res.send(data)
 })
 router.post('/', async (req, res) => {
   await User.updateOne(
     {
-      userId: req.body.userId
+      googleId: req.user.googleId
     },
     {
       $set: {
         selectedCalendars: req.body.selectedCalendars,
         calendarGroups: req.body.calendarGroups
       }
-    },
-    {
-      upsert: true
     }
   )
     .then(() => res.json({ status: 'success' }))

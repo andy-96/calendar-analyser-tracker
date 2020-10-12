@@ -212,7 +212,6 @@ const convertGadgetPreferencesToUnderscore = (events) => {
 
 exports.updateMongo = async (start, end, accessToken, refreshToken) => {
   const auth = await googleAuth(accessToken, refreshToken)
-  console.log(auth)
   const calendars = await fetchCalendarsFromGoogle(auth)
   await saveCalendarsToMongo(calendars)
 
