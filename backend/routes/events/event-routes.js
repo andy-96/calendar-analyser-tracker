@@ -2,9 +2,18 @@ const express = require('express')
 const router = express.Router()
 const { Event, User } = require('../../models/index')
 const { updateMongo } = require('../../config/googleCalendar')
+const { fetchGoogleInterval } = require('../../constants')
 
 router.get('/', async (req, res) => {
-  if (req.query.fetchFromGoogle) {
+  const { lastGoogleFetch } = await User.findOne({
+    googleId: req.user.googleId
+  })
+  console.log(req.query.fetchFromGoogle)
+  console.log(new Date() - lastGoogleFetch > fetchGoogleInterval)
+  if (
+    req.query.fetchFromGoogle === 'true' ||
+    new Date() - lastGoogleFetch > fetchGoogleInterval
+  ) {
     await updateMongo(
       req.query.start,
       req.query.end,
@@ -38,7 +47,6 @@ router.get('/', async (req, res) => {
       ]
     }
   })
-  console.log(req.user.googleId)
   await User.findOneAndUpdate(
     {
       googleId: req.user.googleId

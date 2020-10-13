@@ -1,4 +1,6 @@
 <template lang="pug">
+div
+  v-btn(flat @click="clickOnRefresh") Refresh
   <!-- create custom table with expandable columns-->
   v-data-table(
     :headers="headers"
@@ -26,13 +28,13 @@ export default {
     calendarGroups: [],
   }),
   methods: {
-    async getEvents() {
+    async getEvents(fetchFromGoogle = false) {
       try {
         const { data } = await mongodb.get('/events', {
           params: {
             start: this.startTime,
             end: this.endTime,
-            fetchFromGoogle: true,
+            fetchFromGoogle,
           },
         })
         this.events = data
@@ -63,6 +65,13 @@ export default {
       const { data } = await mongodb.get('/settings')
       this.selectedCalendars = data[0].selectedCalendars
       this.calendarGroups = data[0].calendarGroups
+    },
+    async clickOnRefresh() {
+      await this.getEvents(true).then(() => {
+        this.getCalendarWeeks()
+        this.getWeeklyReviews()
+        this.createTableHeaders()
+      })
     },
     createTableHeaders() {
       try {
