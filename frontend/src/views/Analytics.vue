@@ -72,6 +72,7 @@ export default {
         this.getWeeklyReviews()
         this.createTableHeaders()
       })
+      //TODO: dynamically load stuff!
     },
     createTableHeaders() {
       try {

@@ -18,7 +18,7 @@ router.get(
   passport.authenticate('google', {
     accessType: 'offline',
     prompt: 'consent',
-    scope: GOOGLE_SCOPES
+    scope: GOOGLE_SCOPES.split(' ')
   })
 )
 
