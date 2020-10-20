@@ -1,10 +1,11 @@
 <template lang="pug">
 div
-  v-btn(flat @click="clickOnRefresh") Refresh
+  v-btn(@click="clickOnRefresh") Refresh
   <!-- create custom table with expandable columns-->
   v-data-table(
     :headers="headers"
     :items="weeklyCalendarReviews"
+    dense
   )
 </template>
 
@@ -22,7 +23,7 @@ export default {
     calendars: [],
     weeklyCalendarReviews: [],
     calendarWeeks: [],
-    rangeInWeeks: 10,
+    rangeInWeeks: 20,
     selectedCalendars: [],
     headers: [],
     calendarGroups: [],
@@ -71,6 +72,11 @@ export default {
         this.getCalendarWeeks()
         this.getWeeklyReviews()
         this.createTableHeaders()
+      })
+      this.events.map(({ organizer: { displayName } }) => {
+        if (displayName === 'Test') {
+          console.log('yo')
+        }
       })
       //TODO: dynamically load stuff!
     },

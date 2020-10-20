@@ -215,9 +215,10 @@ exports.updateMongo = async (start, end, accessToken, refreshToken) => {
   const calendars = await fetchCalendarsFromGoogle(auth)
   await saveCalendarsToMongo(calendars)
 
-  calendars.map(async ({ id: calendarId }) => {
-    const events = await fetchEventsFromGoogle(auth, calendarId, start, end)
-    await saveEventsToMongo(events, calendarId, start, end)
-  })
-  return
+  return Promise.all(
+    calendars.map(async ({ id: calendarId }) => {
+      const events = await fetchEventsFromGoogle(auth, calendarId, start, end)
+      await saveEventsToMongo(events, calendarId, start, end)
+    })
+  )
 }

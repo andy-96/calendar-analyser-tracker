@@ -7,7 +7,7 @@ const { VUE_APP_MONGODB_BASEURL } = process.env
 
 export const mongodb = axios.create({
   baseURL: VUE_APP_MONGODB_BASEURL,
-  timeout: 10000,
+  timeout: 100000,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })

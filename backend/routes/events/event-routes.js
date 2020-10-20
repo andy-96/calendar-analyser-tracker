@@ -8,8 +8,6 @@ router.get('/', async (req, res) => {
   const { lastGoogleFetch } = await User.findOne({
     googleId: req.user.googleId
   })
-  console.log(req.query.fetchFromGoogle)
-  console.log(new Date() - lastGoogleFetch > fetchGoogleInterval)
   if (
     req.query.fetchFromGoogle === 'true' ||
     new Date() - lastGoogleFetch > fetchGoogleInterval
