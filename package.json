@@ -1,0 +1,11 @@
+{
+    "private": true,
+    "workspaces": ["backend", "frontend"],
+    "scripts": {
+        "frontend:serve": "vue-cli-service serve",
+        "frontend:build": "vue-cli-service build",
+        "frontend:lint": "vue-cli-service lint",
+        "frontend:stage": "mkdir -p ../backend/public && rm -rf ../backend/public/* && mv dist/* ../backend/public",
+        "backend:start": "nodemon ./bin/www"
+      }
+}

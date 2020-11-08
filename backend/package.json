@@ -6,6 +6,7 @@
     "start": "nodemon ./bin/www"
   },
   "dependencies": {
+    "cross-env": "5.0.5",
     "cookie-parser": "~1.4.4",
     "cookie-session": "^1.4.0",
     "cors": "^2.8.5",
