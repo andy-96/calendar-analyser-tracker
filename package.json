@@ -6,6 +6,6 @@
         "frontend:build": "vue-cli-service build",
         "frontend:lint": "vue-cli-service lint",
         "frontend:stage": "mkdir -p ../backend/public && rm -rf ../backend/public/* && mv dist/* ../backend/public",
-        "start": "nodemon ./bin/www"
+        "start": "nodemon backend/bin/www"
       }
 }
