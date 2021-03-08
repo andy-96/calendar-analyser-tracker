@@ -1,19 +1,27 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { google } from 'googleapis'
-import { calendar } from 'googleapis/build/src/apis/calendar'
+import { OAuth2Client } from 'google-auth-library'
+import { GaxiosResponse } from 'gaxios'
 import * as fs from 'fs'
 import * as readline from 'readline'
 
+import { CalendarModel } from '@/data-models/calendars'
+import { CalendarsEventsReponse, CalendarSparse, EventByCalendar, EventSparse, GoogleCalendar, GoogleCalendarList, GoogleEvent } from '@/interfaces'
+import { EventsModel } from '@/data-models/events'
+
 @Injectable()
 export class GoogleService {
-  private auth
+  private googleCalendar: GoogleCalendar
+  private calendars: CalendarModel = new CalendarModel
+  private events: EventsModel = new EventsModel
+  private readonly logger = new Logger('GoogleService')
 
   constructor () {
     this.authorize()
   }
 
   private authorize(): void {
-    const oAuth2Client = new google.auth.OAuth2(
+    const oAuth2Client: OAuth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
       process.env.GOOGLE_REDIRECT_URIS
@@ -23,17 +31,17 @@ export class GoogleService {
     fs.readFile(process.env.GOOGLE_TOKEN_PATH, (err, token) => {
       if (err) return this.getAccessToken(oAuth2Client)
       oAuth2Client.setCredentials(JSON.parse(token.toString()))
-      this.auth = oAuth2Client
+      this.googleCalendar = google.calendar({ version: 'v3', auth: oAuth2Client })
     })
   }
 
-  private getAccessToken(oAuth2Client) {
-    const authUrl = oAuth2Client.generateAuthUrl({
+  private getAccessToken(oAuth2Client: OAuth2Client): void | OAuth2Client {
+    const authUrl: string = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: process.env.GOOGLE_SCOPES,
     })
     console.log('Authorize this app by visiting this url:', authUrl)
-    const rl = readline.createInterface({
+    const rl: readline.Interface = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
     })
@@ -50,14 +58,52 @@ export class GoogleService {
         return oAuth2Client
       })
     })
-  }  
+  }
 
-  async fetchCalendars(): Promise<string> {
-    const calendar = google.calendar({ version: 'v3', auth: this.auth})
-    const res = await calendar.calendarList
-      .list()
-      .catch((err) => console.error('Could not fetch calendars', err))
-    console.log(res['data']['items'].map(({ summary }) => summary))
-    return 'Hello World!'
+  async getCalendarsAndEvents(): Promise<CalendarsEventsReponse> {
+    const calendars = await this.fetchCalendars()
+    const events = await this.fetchEvents()
+    return { calendars, events }
+  }
+
+  private async fetchCalendars(): Promise<CalendarSparse[]> {
+    try {
+      const { data: { items } }: GaxiosResponse<GoogleCalendarList> = await this.googleCalendar
+        .calendarList
+        .list()
+      this.logger.log(`Fetched ${items.length} calendars`)
+      this.calendars.updateCalendars(items)
+      return this.calendars.getCalendarsSparse()
+    } catch(err) {
+      this.logger.error(`Could not fetch calendars due to ${err}`)
+    }
+  }
+
+  private async fetchEvents(): Promise<EventByCalendar[]> {
+    try {
+      this.events.updateCalendarModel(this.calendars)
+
+      const calendarIds: { calendarId: string, calendarName: string }[] = this.calendars.getCalendarIdsNames()
+      // TODO: make start/end Date dynamic
+      const start: Date = new Date()
+      const end: Date = new Date(start.getFullYear() - 1, start.getMonth(), start.getDate(), start.getHours(), start.getMinutes(), 0, 0)
+      const events: EventByCalendar[] = await Promise.all(calendarIds.map(async ({ calendarId, calendarName }) => {
+        const {
+          data: { items }
+        } = await this.googleCalendar.events
+          .list({
+            calendarId,
+            timeMin: end.toISOString(),
+            timeMax: start.toISOString(),
+            singleEvents: true,
+            orderBy: 'startTime',
+          })
+        return { calendarId, calendarName, events: items }
+      }))
+      this.events.updateEvents(events, start, end)
+      return this.events.getEventsByCalendarSparse()
+    } catch (err) {
+      this.logger.error(`Could not fetch events due to ${err}`)
+    }
   }
 }

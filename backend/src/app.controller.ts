@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
-import { GoogleService } from './google-service/google-service.service';
+import { GoogleService } from './google-service/google-service.service'
+import { CalendarsEventsReponse } from './interfaces'
 
 @Controller()
 export class AppController {
@@ -8,7 +9,7 @@ export class AppController {
   ) {}
 
   @Get()
-  async getHello(): Promise<string> {
-    return await this.googleService.fetchCalendars()
+  async getCalendarsEvents(): Promise<CalendarsEventsReponse> {
+    return await this.googleService.getCalendarsAndEvents()
   }
 }
