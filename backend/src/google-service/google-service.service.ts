@@ -6,7 +6,7 @@ import * as fs from 'fs'
 import * as readline from 'readline'
 
 import { CalendarModel } from '@/data-models/calendars'
-import { CalendarsEventsReponse, CalendarSparse, EventByCalendar, EventSparse, GoogleCalendar, GoogleCalendarList, GoogleEvent } from '@/interfaces'
+import { CalendarsEventsReponse, CalendarSparse, EventByCalendar, GoogleCalendar, GoogleCalendarList, GoogleEventList } from '@/interfaces'
 import { EventsModel } from '@/data-models/events'
 
 @Injectable()
@@ -84,21 +84,30 @@ export class GoogleService {
       this.events.updateCalendarModel(this.calendars)
 
       const calendarIds: { calendarId: string, calendarName: string }[] = this.calendars.getCalendarIdsNames()
-      // TODO: make start/end Date dynamic
       const start: Date = new Date()
+      // TODO: make end Date dynamic or customizable!
       const end: Date = new Date(start.getFullYear() - 1, start.getMonth(), start.getDate(), start.getHours(), start.getMinutes(), 0, 0)
       const events: EventByCalendar[] = await Promise.all(calendarIds.map(async ({ calendarId, calendarName }) => {
-        const {
-          data: { items }
-        } = await this.googleCalendar.events
-          .list({
-            calendarId,
-            timeMin: end.toISOString(),
-            timeMax: start.toISOString(),
-            singleEvents: true,
-            orderBy: 'startTime',
-          })
-        return { calendarId, calendarName, events: items }
+        let pageToken = ''
+        const requestedEvents = []
+        // get all data by using the nextPageToken
+        while (1) {
+          const { data }: GaxiosResponse<GoogleEventList> = await this.googleCalendar.events
+            .list({
+              calendarId,
+              timeMin: end.toISOString(),
+              timeMax: start.toISOString(),
+              singleEvents: true,
+              orderBy: 'startTime',
+              pageToken
+            })
+          requestedEvents.push(...data.items)
+          if (typeof data.nextPageToken === 'undefined') {
+            break
+          }
+          pageToken = data.nextPageToken
+        }
+        return { calendarId, calendarName, events: requestedEvents }
       }))
       this.events.updateEvents(events, start, end)
       return this.events.getEventsByCalendarSparse()

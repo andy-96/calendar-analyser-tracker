@@ -1,4 +1,4 @@
-import { calendar_v3 } from "googleapis";
+import { calendar_v3 } from 'googleapis'
 
 export interface GoogleCalendarListEntry extends calendar_v3.Schema$CalendarListEntry {}
 export interface GoogleCalendar extends calendar_v3.Calendar {}
@@ -16,6 +16,7 @@ export interface CalendarsEventsReponse {
   events: EventByCalendar[]
 }
 
+export interface GoogleEventList extends calendar_v3.Schema$Events {}
 export interface GoogleEvent extends calendar_v3.Schema$Event {
   duration?: number
 }

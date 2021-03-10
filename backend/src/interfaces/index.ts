@@ -6,7 +6,8 @@ import {
   EventSparse,
   CalendarSparse,
   CalendarsEventsReponse,
-  EventByCalendar
+  EventByCalendar,
+  GoogleEventList
 } from '@/interfaces/calendar.interface'
 
 export {
@@ -17,5 +18,6 @@ export {
   EventSparse,
   CalendarSparse,
   CalendarsEventsReponse,
-  EventByCalendar
+  EventByCalendar,
+  GoogleEventList
 }
