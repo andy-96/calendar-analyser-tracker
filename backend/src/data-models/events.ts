@@ -15,6 +15,7 @@ export class EventsModel {
     this.startTime = startTime
     this.endTime = endTime
     this.events = eventByCalendar.map(({ events, ...calendarInfo }) => {
+      const { accessRole, backgroundColor, summary } = this.calendars.getCalendarsSparse().find(({ id }) => id === calendarInfo.calendarId)
       const eventsWithDuration = events.map(({ start, end, ...events }) => {
         const duration = Number(new Date(end.dateTime)) - Number(new Date(start.dateTime))
         return {
@@ -26,6 +27,9 @@ export class EventsModel {
       })
       return {
         ...calendarInfo,
+        accessRole,
+        backgroundColor,
+        calendarName: summary,
         events: eventsWithDuration
       }
     })

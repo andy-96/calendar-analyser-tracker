@@ -1,15 +1,18 @@
-export interface CalendarSparse {
-  id: string
-  summary: string
-  accessRole: string
-  backgroundColor: string
-}
-
-export interface EventByCalendar {
+export interface RawCalendar {
   calendarId: string
   calendarName: string
+  accessRole: string
+  backgroundColor: string
   events: EventSparse[]
-  duration?: string
+}
+
+export interface Calendar extends RawCalendar {
+  totalDuration: number
+  totalDurationString: string
+  threeMonthAverage: number
+  threeMonthAverageString: string
+  durationSinceMonday: number
+  durationSinceMondayString: string
 }
 
 export interface EventSparse {
@@ -29,4 +32,18 @@ export interface EventSparse {
   }
   htmlLink: string
   duration: number
+}
+
+export interface Category {
+  name: string
+  calendars: Calendar[]
+}
+
+export interface SelectedCategories {
+  [key: string]: string
+}
+
+export interface CategorySparse {
+  name: string
+  calendars: string[]
 }

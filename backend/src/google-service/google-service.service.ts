@@ -6,7 +6,7 @@ import * as fs from 'fs'
 import * as readline from 'readline'
 
 import { CalendarModel } from '@/data-models/calendars'
-import { CalendarsEventsReponse, CalendarSparse, EventByCalendar, GoogleCalendar, GoogleCalendarList, GoogleEventList } from '@/interfaces'
+import { CalendarSparse, EventByCalendar, GoogleCalendar, GoogleCalendarList, GoogleEventList } from '@/interfaces'
 import { EventsModel } from '@/data-models/events'
 
 @Injectable()
@@ -60,10 +60,10 @@ export class GoogleService {
     })
   }
 
-  async getCalendarsAndEvents(): Promise<CalendarsEventsReponse> {
-    const calendars = await this.fetchCalendars()
+  async getEvents(): Promise<EventByCalendar[]> {
+    await this.fetchCalendars()
     const events = await this.fetchEvents()
-    return { calendars, events }
+    return events
   }
 
   private async fetchCalendars(): Promise<CalendarSparse[]> {
@@ -87,7 +87,7 @@ export class GoogleService {
       const start: Date = new Date()
       // TODO: make end Date dynamic or customizable!
       const end: Date = new Date(start.getFullYear() - 1, start.getMonth(), start.getDate(), start.getHours(), start.getMinutes(), 0, 0)
-      const events: EventByCalendar[] = await Promise.all(calendarIds.map(async ({ calendarId, calendarName }) => {
+      const events: EventByCalendar[] = await Promise.all(calendarIds.map(async ({ calendarId }) => {
         let pageToken = ''
         const requestedEvents = []
         // get all data by using the nextPageToken
@@ -107,7 +107,7 @@ export class GoogleService {
           }
           pageToken = data.nextPageToken
         }
-        return { calendarId, calendarName, events: requestedEvents }
+        return { calendarId, events: requestedEvents }
       }))
       this.events.updateEvents(events, start, end)
       return this.events.getEventsByCalendarSparse()

@@ -5,7 +5,6 @@ import {
   GoogleEvent,
   EventSparse,
   CalendarSparse,
-  CalendarsEventsReponse,
   EventByCalendar,
   GoogleEventList
 } from '@/interfaces/calendar.interface'
@@ -17,7 +16,6 @@ export {
   GoogleEvent,
   EventSparse,
   CalendarSparse,
-  CalendarsEventsReponse,
   EventByCalendar,
   GoogleEventList
 }

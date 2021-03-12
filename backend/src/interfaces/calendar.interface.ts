@@ -11,11 +11,6 @@ export interface CalendarSparse {
   backgroundColor: string
 }
 
-export interface CalendarsEventsReponse {
-  calendars: CalendarSparse[]
-  events: EventByCalendar[]
-}
-
 export interface GoogleEventList extends calendar_v3.Schema$Events {}
 export interface GoogleEvent extends calendar_v3.Schema$Event {
   duration?: number
@@ -23,7 +18,6 @@ export interface GoogleEvent extends calendar_v3.Schema$Event {
 
 export interface EventByCalendar {
   calendarId: string
-  calendarName: string
   events: GoogleEvent[] | EventSparse[]
 }
 
