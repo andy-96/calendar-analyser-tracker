@@ -31,26 +31,30 @@ export class CategoriesModel {
   updateCategoriesFromDatabase(categories: FirebaseCategory[], calendarsModel: CalendarsModel): void {
     this.savedCategories = categories.map(({ calendars: calendarIds, ...category }) => {
       const calendars: Calendar[] = []
-      calendarIds.map(calId => {
-        const calendar = calendarsModel.getCalendars().find(({ calendarId }) => calendarId === calId)
-        if (typeof calendar !== 'undefined') {
-          calendars.push(calendar)
-        }
-      })
+      if (typeof calendarIds !== 'undefined') {
+        calendarIds.map(calId => {
+          const calendar = calendarsModel.getCalendars().find(({ calendarId }) => calendarId === calId)
+          if (typeof calendar !== 'undefined') {
+            calendars.push(calendar)
+          }
+        })
+      }
       return {
         calendars,
         ...category
       }
     })
       .sort((a, b) => b.orderId - a.orderId)
-    this.cachedCategories = this.getSavedCategories()
     // Reset categoryId to highest id while ommitting not available one
-    this.categoryId = Math.max(...this.cachedCategories.map(({ id }) => {
+    this.categoryId = Math.max(...this.savedCategories.map(({ id }) => {
       if (id === this.notAssignedCategory.id) {
         return 0
       }
       return id
     }))
+    if (this.categoryId === 0) {
+      this.categoryId = 1
+    }
     this.calculateMetaData()
   }
 

@@ -4,6 +4,7 @@
   p-button(icon="pi pi-cog" @click="openSettings")
   .dashboard__modal(v-if="modalVisible")
     .dashboard__modal--content
+      span.pi.pi-times.dashboard__modal--content_close(@click="clickOnCloseModal")
       .dashboard__modal--content_categories
         h4 Create categories
         .dashboard__modal--content_categories__input
@@ -62,6 +63,9 @@ export default defineComponent ({
     'time-table': TimeTable
   },
   methods: {
+    clickOnCloseModal(): void {
+      this.modalVisible = false
+    },
     clickOnCategoryEdit(id: number): void {
       this.categoryEdit[id].status = true
     },
@@ -97,6 +101,7 @@ export default defineComponent ({
     openSettings(): void {
       this.categoriesModel.loadSavedCategoriesToCache()
       this.selectedCategories = this.categoriesModel.getSelectedCategories()
+      this.categoryEdit = this.categoriesModel.getCategoryEdit()
       this.modalVisible = true
     },
     async clickOnSaveCategories(): Promise<void> {
@@ -132,7 +137,6 @@ export default defineComponent ({
       this.categoriesModel.updateCategoriesFromDatabase(categories, this.calendarsModel)
       this.modalVisible = false
     }
-    this.categoryEdit = this.categoriesModel.getCategoryEdit()
     this.dataLoaded = true
   }
 })
@@ -155,9 +159,20 @@ export default defineComponent ({
 
     &--content
       display: flex
-      margin: 10% auto
+      margin:
+        top: 5%
+        left: auto
+        right: auto
       height: 80%
       width: 80%
+      position: relative
+
+      &_close
+        position: absolute
+        left: 1rem
+        top: 1rem
+        z-index: 2
+        cursor: pointer
 
       &_categories
         flex: 1
