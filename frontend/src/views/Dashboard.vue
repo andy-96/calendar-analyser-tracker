@@ -1,7 +1,7 @@
 <template lang="pug">
 .home
   <!-- add pie chart here! -->
-  p-button(icon="pi pi-cog" @click="clickOnSettings")
+  p-button(icon="pi pi-cog" @click="openSettings")
   .dashboard__modal(v-if="modalVisible")
     .dashboard__modal--content
       .dashboard__modal--content_categories
@@ -20,6 +20,7 @@
             .dashboard__modal--content_categories-buttons__button--content(v-else)
               input(type="text" v-model="categoryEdit[category.id].name")
               span.pi.pi-check(@click="clickOnCategorySave(category.id)")
+              span.pi.pi-trash(@click="clickOnCategoryDelete(category.id)")
         button.dashboard__modal--content_categories__save(@click="clickOnSaveCategories") Save
       .dashboard__modal--content_table
         p-data-table(
@@ -65,11 +66,23 @@ export default defineComponent ({
       this.categoryEdit[id].status = true
     },
     clickOnCategorySave(id: number): void {
-      this.categoriesModel.renameCategory(id, this.categoryEdit[id])
+      if (!this.categoriesModel.renameCategoryFromCache(id, this.categoryEdit[id])) {
+        alert("Category shouldn't be empty!")
+      }
       const selectedCalendars = Object.keys(this.selectedCategories)
       selectedCalendars.map(calId => {
         if (this.selectedCategories[calId].id === id) {
           this.selectedCategories[calId].name = this.categoryEdit[id].name
+        }
+      })
+      this.categoryEdit[id].status = false
+    },
+    clickOnCategoryDelete(id: number): void {
+      this.categoriesModel.removeCategoryFromCache(id)
+      const selectedCalendars = Object.keys(this.selectedCategories)
+      selectedCalendars.map(calId => {
+        if (this.selectedCategories[calId].id === id) {
+          this.selectedCategories[calId] = this.categoriesModel.getNotAssignedCategory()
         }
       })
       this.categoryEdit[id].status = false
@@ -81,7 +94,9 @@ export default defineComponent ({
       this.categoryEdit = this.categoriesModel.getCategoryEdit()
       this.newCategory = ''
     },
-    clickOnSettings(): void {
+    openSettings(): void {
+      this.categoriesModel.loadSavedCategoriesToCache()
+      this.selectedCategories = this.categoriesModel.getSelectedCategories()
       this.modalVisible = true
     },
     async clickOnSaveCategories(): Promise<void> {
@@ -111,10 +126,10 @@ export default defineComponent ({
 
     if (categories.length === 0) {
       // Set all calendars to not assigned
-      this.selectedCategories = this.categoriesModel.initialSetup(this.calendarsModel)
+      this.categoriesModel.initialSetup(this.calendarsModel)
+      this.openSettings()
     } else {
       this.categoriesModel.updateCategoriesFromDatabase(categories, this.calendarsModel)
-      this.selectedCategories = this.categoriesModel.getSelectedCategories()
       this.modalVisible = false
     }
     this.categoryEdit = this.categoriesModel.getCategoryEdit()
@@ -148,6 +163,7 @@ export default defineComponent ({
         flex: 1
         background-color: #FFD23F
         position: relative
+        padding: 1%
 
         &-buttons
           &__button
@@ -175,7 +191,7 @@ export default defineComponent ({
               span
                 font-size: 0.7rem
                 color: white
-                margin-left: 0.2rem
+                margin-left: 0.3rem
                 margin-top: 0.15rem
                 cursor: pointer
 

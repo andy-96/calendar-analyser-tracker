@@ -12,18 +12,20 @@ export class CategoriesModel {
     name: 'Not Assigned'
   }
 
-  initialSetup(calendarsModel: CalendarsModel): SelectedCategories {
-    const selectedCategories: SelectedCategories = {}
+  initialSetup(calendarsModel: CalendarsModel) {
+    // Push every calendar to not assigned
     calendarsModel.getCalendars().map(calendar => {
-      this.addCalendarToCategory(
-        calendar,
-        this.getNotAssignedCategory()
-      )
-      selectedCategories[calendar.calendarId] = this.notAssignedCategory
+      this.addCalendarToCategory(calendar, this.notAssignedCategory)
     })
-    this.cachedCategories.push(this.notAssignedCategory)
-    console.log(selectedCategories)
-    return selectedCategories
+    this.calculateMetaData()
+  }
+
+  loadSavedCategoriesToCache() {
+    this.cachedCategories = this.savedCategories.map(({ id, name, orderId }) => {
+      return {
+        id, name, orderId
+      }
+    })
   }
 
   updateCategoriesFromDatabase(categories: FirebaseCategory[], calendarsModel: CalendarsModel): void {
@@ -63,6 +65,28 @@ export class CategoriesModel {
     })
     this.categoryId += 1
     return true
+  }
+
+  renameCategoryFromCache(catId: number, newCategory: { status: boolean, name: string }): boolean {
+    if (newCategory.name === '') {
+      return false
+    }
+    this.cachedCategories = this.cachedCategories.map(({ name, id, orderId }) => {
+      if (id === catId) {
+        return {
+          name: newCategory.name,
+          id,
+          orderId
+        }
+      }
+      return { name, id, orderId }
+    })
+    return true
+  }
+
+  removeCategoryFromCache(catId: number): void {
+    const index = this.cachedCategories.findIndex(({ id }) => catId === id)
+    this.cachedCategories.splice(index, 1)
   }
 
   addCalendarToCategory(calendar: Calendar, category: CategorySparse): void {
@@ -118,7 +142,30 @@ export class CategoriesModel {
     })
   }
 
-  getSavedCategories(): CategorySparse[] {
+  getCategoryEdit(): CategoryEdit {
+    const categoryEdit: CategoryEdit = {}
+    this.getCachedCategories().map(({ id, name }) => {
+      categoryEdit[id] = {
+        status: false,
+        name
+      }
+    })
+    return categoryEdit
+  }
+
+  getSelectedCategories(): SelectedCategories {
+    const selectedCategories: SelectedCategories = {}
+    this.savedCategories.map(({ calendars, id, name, orderId }) => {
+      calendars.map(({ calendarId }) => {
+        selectedCategories[calendarId] = {
+          id, name, orderId
+        }
+      })
+    })
+    return selectedCategories
+  }
+
+  private getSavedCategories(): CategorySparse[] {
     return this.savedCategories.map(({ calendars, ...savedCategories }) => {
       return {
         ...savedCategories
@@ -144,51 +191,7 @@ export class CategoriesModel {
     })
   }
 
-  getSelectedCategories(): SelectedCategories {
-    const selectedCategories: SelectedCategories = {}
-    this.savedCategories.map(({ calendars, ...savedCategory }) => {
-      calendars.map(({ calendarId }) => {
-        selectedCategories[calendarId] = savedCategory
-      })
-    })
-    return selectedCategories
-  }
-
   getNotAssignedCategory(): CategorySparse {
     return this.notAssignedCategory
-  }
-
-  getCategoryEdit(): CategoryEdit {
-    const categoryEdit: CategoryEdit = {}
-    this.getCachedCategories().map(({ id, name }) => {
-      categoryEdit[id] = {
-        status: false,
-        name
-      }
-    })
-    return categoryEdit
-  }
-
-  renameCategory(catId: number, newCategory: { status: boolean, name: string }): void {
-    this.savedCategories = this.savedCategories.map(({ name, id, ...category }) => {
-      if(id === catId) {
-        return {
-          name: newCategory.name,
-          id,
-          ...category
-        }
-      }
-      return { name, id, ...category }
-    })
-    this.cachedCategories = this.cachedCategories.map(({ name, id, orderId }) => {
-      if (id === catId) {
-        return {
-          name: newCategory.name,
-          id,
-          orderId
-        }
-      }
-      return { name, id, orderId }
-    })
   }
 }
