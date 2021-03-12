@@ -1,4 +1,4 @@
-import { Calendar, Category, CategorySparse, FirebaseCategory, SelectedCategories } from '@/interfaces'
+import { Calendar, Category, CategoryEdit, CategorySparse, FirebaseCategory, SelectedCategories } from '@/interfaces'
 import { msToTime } from '@/utils'
 import { CalendarsModel } from '.'
 
@@ -156,5 +156,39 @@ export class CategoriesModel {
 
   getNotAssignedCategory(): CategorySparse {
     return this.notAssignedCategory
+  }
+
+  getCategoryEdit(): CategoryEdit {
+    const categoryEdit: CategoryEdit = {}
+    this.getCachedCategories().map(({ id, name }) => {
+      categoryEdit[id] = {
+        status: false,
+        name
+      }
+    })
+    return categoryEdit
+  }
+
+  renameCategory(catId: number, newCategory: { status: boolean, name: string }): void {
+    this.savedCategories = this.savedCategories.map(({ name, id, ...category }) => {
+      if(id === catId) {
+        return {
+          name: newCategory.name,
+          id,
+          ...category
+        }
+      }
+      return { name, id, ...category }
+    })
+    this.cachedCategories = this.cachedCategories.map(({ name, id, orderId }) => {
+      if (id === catId) {
+        return {
+          name: newCategory.name,
+          id,
+          orderId
+        }
+      }
+      return { name, id, orderId }
+    })
   }
 }

@@ -2,7 +2,7 @@
 p-data-table(
   :value="categoriesModel.getCategories()"
   v-model:expandedRows="expandedRows"
-  dataKey="name"
+  dataKey="id"
 )
   p-column(:expander="true" headerStyle="width: 3rem")
   p-column(field="name" header="Category")

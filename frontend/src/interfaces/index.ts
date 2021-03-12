@@ -51,3 +51,10 @@ export interface FirebaseCategory extends CategorySparse {
 export interface SelectedCategories {
   [key: string]: CategorySparse
 }
+
+export interface CategoryEdit {
+  [key: string]: {
+    status: boolean
+    name: string
+  }
+}
