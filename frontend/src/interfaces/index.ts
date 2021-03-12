@@ -34,16 +34,20 @@ export interface EventSparse {
   duration: number
 }
 
-export interface Category {
+export interface CategorySparse {
+  id: number
   name: string
+  orderId: number
+}
+
+export interface Category extends CategorySparse {
   calendars: Calendar[]
 }
 
-export interface SelectedCategories {
-  [key: string]: string
+export interface FirebaseCategory extends CategorySparse {
+  calendars: string[]
 }
 
-export interface CategorySparse {
-  name: string
-  calendars: string[]
+export interface SelectedCategories {
+  [key: string]: CategorySparse
 }

@@ -6,14 +6,18 @@
     h4 Assign each calendar to a category
     p-input-text(v-model="newCategory")
     p-button(@click="clickOnAddCategory") Add
-    p(v-for="category in categoriesModel.getCachedCategoryNames()") {{ category }}
+    p(v-for="category in categoriesModel.getCachedCategories()") {{ category.name }}
     p-data-table(
       :value="calendarsModel.getCalendars()"
     )
       p-column(field="calendarName" header="Name")
       p-column(header="Category")
         template(#body="slotProps")
-          p-dropdown(v-model="selectedCategories[slotProps.data.calendarId]" :options="categoriesModel.getCachedCategoryNames()")
+          p-dropdown(
+            v-model="selectedCategories[slotProps.data.calendarId]"
+            :options="categoriesModel.getCachedCategories()"
+            optionLabel="name"
+          )
     p-button(@click="clickOnSaveCategories") Save
 
   time-table(
@@ -24,7 +28,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { backend } from '@/utils'
-import { SelectedCategories } from '@/interfaces'
+import { SelectedCategories, CategorySparse } from '@/interfaces'
 import { CalendarsModel, CategoriesModel } from '@/data-models'
 import TimeTable from '@/components/TimeTable.vue'
 
@@ -42,7 +46,9 @@ export default defineComponent ({
   },
   methods: {
     clickOnAddCategory(): void {
-      this.categoriesModel.addCategory(this.newCategory)
+      if (!this.categoriesModel.addCategoryToCache(this.newCategory)) {
+        alert('Something went wrong!')
+      }
       this.newCategory = ''
     },
     clickOnSettings(): void {
@@ -52,17 +58,9 @@ export default defineComponent ({
       // clean categories
       this.categoriesModel.clearCategories()
       // save calendars to categories
-      this.categoriesModel.addCategory('Not Assigned')
-      const selectedCalendars: string[] = Object.keys(this.selectedCategories)
       this.calendarsModel.getCalendars().map(cal => {
-        if (selectedCalendars.includes(cal.calendarId)) {
-          // add calendar to category
-          const categoryName: string = this.selectedCategories[cal.calendarId]
-          this.categoriesModel.addCalendarToCategory(cal, categoryName)
-        } else {
-          // add calendar to not assigned
-          this.categoriesModel.addCalendarToCategory(cal, 'Not Assigned')
-        }
+        const category: CategorySparse = this.selectedCategories[cal.calendarId]
+        this.categoriesModel.addCalendarToCategory(cal, category)
       })
 
       this.categoriesModel.calculateMetaData()
@@ -72,7 +70,6 @@ export default defineComponent ({
         userId: '123',
         categoriesSparse
       })
-      console.log(res)
       this.modalVisible = false
     }
   },
@@ -81,7 +78,11 @@ export default defineComponent ({
       userId: '123'
     })
     this.calendarsModel.updateRawCalendars(events)
-    if (categories.length !== 0) {
+
+    if (categories.length === 0) {
+      // Set all calendars to not assigned
+      this.selectedCategories = this.categoriesModel.initialSetup(this.calendarsModel)
+    } else {
       this.categoriesModel.updateCategoriesFromDatabase(categories, this.calendarsModel)
       this.selectedCategories = this.categoriesModel.getSelectedCategories()
       this.modalVisible = false

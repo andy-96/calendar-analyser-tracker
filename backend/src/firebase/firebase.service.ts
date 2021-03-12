@@ -39,7 +39,13 @@ export class FirebaseService {
     return this.database
       .ref(`categories/${userId}`)
       .once('value')
-      .then(categories => categories.val())
+      .then(categories => {
+        // if user does not exist
+        if (categories.val() === null) {
+          return []
+        }
+        return categories.val()
+      })
       .catch(err => {
         this.logger.error(`Something went wrong during fetching the categories due to ${err}`)
         return []

@@ -1,13 +1,33 @@
-import { Calendar, Category, CategorySparse, SelectedCategories } from '@/interfaces'
+import { Calendar, Category, CategorySparse, FirebaseCategory, SelectedCategories } from '@/interfaces'
 import { msToTime } from '@/utils'
 import { CalendarsModel } from '.'
 
 export class CategoriesModel {
-  private categories: Category[] = []
-  private categoryList: string[] = []
+  private savedCategories: Category[] = []
+  private cachedCategories: CategorySparse[] = []
+  private categoryId = 1
+  private notAssignedCategory: CategorySparse = {
+    id: 0,
+    orderId: 0,
+    name: 'Not Assigned'
+  }
 
-  updateCategoriesFromDatabase(categories: CategorySparse[], calendarsModel: CalendarsModel): void {
-    this.categories = categories.map(({ calendars: calendarIds, ...category }) => {
+  initialSetup(calendarsModel: CalendarsModel): SelectedCategories {
+    const selectedCategories: SelectedCategories = {}
+    calendarsModel.getCalendars().map(calendar => {
+      this.addCalendarToCategory(
+        calendar,
+        this.getNotAssignedCategory()
+      )
+      selectedCategories[calendar.calendarId] = this.notAssignedCategory
+    })
+    this.cachedCategories.push(this.notAssignedCategory)
+    console.log(selectedCategories)
+    return selectedCategories
+  }
+
+  updateCategoriesFromDatabase(categories: FirebaseCategory[], calendarsModel: CalendarsModel): void {
+    this.savedCategories = categories.map(({ calendars: calendarIds, ...category }) => {
       const calendars: Calendar[] = []
       calendarIds.map(calId => {
         const calendar = calendarsModel.getCalendars().find(({ calendarId }) => calendarId === calId)
@@ -20,33 +40,54 @@ export class CategoriesModel {
         ...category
       }
     })
-    this.categoryList = this.getSavedCategoryNames()
-    console.log(this.categoryList)
+      .sort((a, b) => b.orderId - a.orderId)
+    this.cachedCategories = this.getSavedCategories()
+    // Reset categoryId to highest id while ommitting not available one
+    this.categoryId = Math.max(...this.cachedCategories.map(({ id }) => {
+      if (id === this.notAssignedCategory.id) {
+        return 0
+      }
+      return id
+    }))
     this.calculateMetaData()
   }
 
-  addCategory(name: string): void {
-    this.categoryList.push(name)
+  addCategoryToCache(name: string): boolean {
+    if (name === ''  || this.getCachedCategories().map(({ name }) => name).includes(name)) {
+      return false
+    }
+    this.cachedCategories.push({
+      id: this.categoryId,
+      name,
+      orderId: this.categoryId
+    })
+    this.categoryId += 1
+    return true
   }
 
-  addCalendarToCategory(calendar: Calendar, categoryName: string): void {
-    if (!this.getSavedCategoryNames().includes(categoryName)) {
-      this.categories.push({
-        name: categoryName,
+  addCalendarToCategory(calendar: Calendar, category: CategorySparse): void {
+    // create new object if category is not available
+    if (
+      !this.getSavedCategories()
+        .map(({ name }) => name)
+        .includes(category.name)
+      ) {
+      this.savedCategories.push({
+        ...category,
         calendars: []
       })
     }
-    const index = this.categories.findIndex(({ name }) => categoryName === name)
-    this.categories[index].calendars.push(calendar)
+    const index = this.savedCategories.findIndex(({ id }) => category.id === id)
+    this.savedCategories[index].calendars.push(calendar)
   }
 
   clearCategories(): void {
-    this.categories = []
+    this.savedCategories = []
   }
 
   calculateMetaData(): void {
     // calculate the meta data
-    this.categories = this.categories.map(({ calendars, ...category }) => {
+    this.savedCategories = this.savedCategories.map(({ calendars, ...category }) => {
       let durationSinceMonday = 0
       let threeMonthAverage = 0
       let totalDuration = 0
@@ -77,35 +118,43 @@ export class CategoriesModel {
     })
   }
 
-  getSavedCategoryNames(): string[] {
-    return this.categories.map(({ name }) => name)
+  getSavedCategories(): CategorySparse[] {
+    return this.savedCategories.map(({ calendars, ...savedCategories }) => {
+      return {
+        ...savedCategories
+      }
+    })
   }
 
-  getCachedCategoryNames(): string[] {
-    return this.categoryList
+  getCachedCategories(): CategorySparse[] {
+    return this.cachedCategories.sort((a, b) => b.orderId - a.orderId)
   }
 
   getCategories(): Category[] {
-    return this.categories
+    return this.savedCategories
   }
 
-  getCategoriesSparse(): CategorySparse[] {
-    return this.categories.map(({ calendars, name }) => {
+  getCategoriesSparse(): FirebaseCategory[] {
+    return this.savedCategories.map(({ calendars, ...savedCategories }) => {
       const calendarSparse = calendars.map(({ calendarId }) => calendarId)
       return {
         calendars: calendarSparse,
-        name
+        ...savedCategories,
       }
     })
   }
 
   getSelectedCategories(): SelectedCategories {
     const selectedCategories: SelectedCategories = {}
-    this.categories.map(({ name, calendars }) => {
+    this.savedCategories.map(({ calendars, ...savedCategory }) => {
       calendars.map(({ calendarId }) => {
-        selectedCategories[calendarId] = name
+        selectedCategories[calendarId] = savedCategory
       })
     })
     return selectedCategories
+  }
+
+  getNotAssignedCategory(): CategorySparse {
+    return this.notAssignedCategory
   }
 }
