@@ -131,7 +131,7 @@ export class CategoriesModel {
   }
 
   getCategories(): Category[] {
-    return this.savedCategories
+    return this.savedCategories.sort((a, b) => b.orderId - a.orderId)
   }
 
   getCategoriesSparse(): FirebaseCategory[] {

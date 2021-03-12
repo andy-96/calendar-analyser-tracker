@@ -2,33 +2,37 @@
 .home
   <!-- add pie chart here! -->
   p-button(icon="pi pi-cog" @click="clickOnSettings")
-  p-dialog.dashboard__modal(v-model:visible="modalVisible")
-    h4 Assign each calendar to a category
-    p-input-text(v-model="newCategory")
-    p-button(@click="clickOnAddCategory") Add
-    .dashboard__modal--categories
-      .dashboard__modal--categories_button(
-        v-for="category in categoriesModel.getCachedCategories()"
-        v-if="dataLoaded"
-      )
-        .dashboard__modal--categories_button-content(v-if="!categoryEdit[category.id].status")
-          p {{ category.name }}
-          span.pi.pi-pencil(@click="clickOnCategoryEdit(category.id)")
-        .dashboard__modal--categories_button-content(v-else)
-          input(type="text" v-model="categoryEdit[category.id].name")
-          span.pi.pi-check(@click="clickOnCategorySave(category.id)")
-    p-data-table(
-      :value="calendarsModel.getCalendars()"
-    )
-      p-column(field="calendarName" header="Name")
-      p-column(header="Category")
-        template(#body="slotProps")
-          p-dropdown(
-            v-model="selectedCategories[slotProps.data.calendarId]"
-            :options="categoriesModel.getCachedCategories()"
-            optionLabel="name"
+  .dashboard__modal(v-if="modalVisible")
+    .dashboard__modal--content
+      .dashboard__modal--content_categories
+        h4 Create categories
+        .dashboard__modal--content_categories__input
+          input(type="text" v-model="newCategory")
+          button(@click="clickOnAddCategory") Add
+        .dashboard__modal--content_categories-buttons
+          .dashboard__modal--content_categories-buttons__button(
+            v-for="category in categoriesModel.getCachedCategories()"
+            v-if="dataLoaded"
           )
-    p-button(@click="clickOnSaveCategories") Save
+            .dashboard__modal--content_categories-buttons__button--content(v-if="!categoryEdit[category.id].status")
+              p {{ category.name }}
+              span.pi.pi-pencil(@click="clickOnCategoryEdit(category.id)")
+            .dashboard__modal--content_categories-buttons__button--content(v-else)
+              input(type="text" v-model="categoryEdit[category.id].name")
+              span.pi.pi-check(@click="clickOnCategorySave(category.id)")
+        button.dashboard__modal--content_categories__save(@click="clickOnSaveCategories") Save
+      .dashboard__modal--content_table
+        p-data-table(
+          :value="calendarsModel.getCalendars()"
+        )
+          p-column(field="calendarName" header="Name")
+          p-column(header="Category")
+            template(#body="slotProps")
+              p-dropdown(
+                v-model="selectedCategories[slotProps.data.calendarId]"
+                :options="categoriesModel.getCachedCategories()"
+                optionLabel="name"
+              )
 
   time-table(
     :categoriesModel="categoriesModel"
@@ -126,45 +130,112 @@ export default defineComponent ({
 
 .dashboard
   &__modal
-    width: 80%
+    width: 100%
+    height: 100%
+    left: 0
+    top:0
+    position: fixed
+    z-index: 1
+    background-color: rgba(0, 0, 0, 0.3)
 
-    &--categories
-      &_button
-        display: inline-block
-        background-color: #C33C54
-        border-radius: 2rem
-        margin:
-          top: 0.5rem
-          bottom: 0.5rem
-          right: 0.5rem
+    &--content
+      display: flex
+      margin: 10% auto
+      height: 80%
+      width: 80%
 
-        &:hover
-          background-color: #AC354B
+      &_categories
+        flex: 1
+        background-color: #FFD23F
+        position: relative
 
-        &-content
-          display: flex
-          margin: 0.3rem 0.5rem 0.3rem 0.5rem
-          height: 1rem
+        &-buttons
+          &__button
+            display: inline-block
+            background-color: #C33C54
+            border-radius: 2rem
+            margin:
+              top: 0.5rem
+              bottom: 0.5rem
+              right: 0.5rem
 
-          p
-            font-size: 0.7rem
-            margin: 0
-            color: white
+            &:hover
+              background-color: #AC354B
 
-          span
-            font-size: 0.7rem
-            color: white
-            margin-left: 0.2rem
-            margin-top: 0.15rem
-            cursor: pointer
+            &--content
+              display: flex
+              margin: 0.3rem 0.5rem 0.3rem 0.5rem
+              height: 1rem
 
+              p
+                font-size: 0.7rem
+                margin: 0
+                color: white
+
+              span
+                font-size: 0.7rem
+                color: white
+                margin-left: 0.2rem
+                margin-top: 0.15rem
+                cursor: pointer
+
+              input
+                height: 1rem
+                width: 5rem
+                font-size: 0.7rem
+                border-color: transparent
+                background-color: #AC354B
+                color: white
+                &:focus
+                  outline: none !important
+
+        &__input
           input
-            height: 1rem
-            width: 5rem
-            font-size: 0.7rem
-            border-color: transparent
-            background-color: #AC354B
-            color: white
+            height: 2rem
+            padding: 0.5rem
+            border:
+              radius: 8px 0px 0px 8px
+              color: transparent
+              width: 1px
+            margin-bottom: 0.5rem
             &:focus
-              outline: none !important
+              outline: none
+
+          button
+            height: 2rem
+            padding: 0.5rem
+            background-color: #999
+            color: white
+            cursor: pointer
+            border:
+              radius: 0px 8px 8px 0px
+              color: transparent
+              width: 1px
+            &:hover
+              background-color: #777
+
+        &__save
+          position: absolute
+          height: 2rem
+          padding: 0.5rem
+          width: 80%
+          background-color: #B88D00
+          color: white
+          cursor: pointer
+          bottom: 2rem
+          left: 10%
+          border:
+            radius: 8px
+            color: transparent
+            width: 1px
+          &:hover
+            background-color: #8F6D00
+          &:focus
+            outline: none
+          
+
+      &_table
+        flex: 3
+        overflow: scroll
+        background-color: white
 </style>
