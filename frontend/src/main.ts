@@ -9,6 +9,7 @@ import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Dropdown from 'primevue/dropdown'
 import Checkbox from 'primevue/checkbox'
+import Chart from 'primevue/chart'
 
 import App from '@/App.vue'
 import router from '@/router'
@@ -24,4 +25,5 @@ createApp(App)
   .component('p-input-text', InputText)
   .component('p-dropdown', Dropdown)
   .component('p-checkbox', Checkbox)
+  .component('p-chart', Chart)
   .mount('#app')

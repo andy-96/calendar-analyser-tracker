@@ -1,9 +1,8 @@
-import { Calendar, Category, CategoryEdit, CategorySparse, FirebaseCategory, SelectedCategories } from '@/interfaces'
-import { msToTime } from '@/utils'
+import { Calendar, Category, CategoryEdit, CategoryMeta, CategorySparse, FirebaseCategory, SelectedCategories } from '@/interfaces'
 import { CalendarsModel } from '.'
 
 export class CategoriesModel {
-  private savedCategories: Category[] = []
+  private savedCategories: CategoryMeta[] = []
   private cachedCategories: CategorySparse[] = []
   private categoryId = 1
   private notAssignedCategory: CategorySparse = {
@@ -31,17 +30,26 @@ export class CategoriesModel {
   updateCategoriesFromDatabase(categories: FirebaseCategory[], calendarsModel: CalendarsModel): void {
     this.savedCategories = categories.map(({ calendars: calendarIds, ...category }) => {
       const calendars: Calendar[] = []
+      let durationSinceMonday = 0
+      let threeMonthAverage = 0
+      let totalDuration = 0
       if (typeof calendarIds !== 'undefined') {
         calendarIds.map(calId => {
           const calendar = calendarsModel.getCalendars().find(({ calendarId }) => calendarId === calId)
           if (typeof calendar !== 'undefined') {
             calendars.push(calendar)
+            durationSinceMonday += calendar.durationSinceMonday
+            threeMonthAverage += calendar.threeMonthAverage
+            totalDuration += calendar.totalDuration
           }
         })
       }
       return {
         calendars,
-        ...category
+        ...category,
+        durationSinceMonday,
+        threeMonthAverage,
+        totalDuration
       }
     })
       .sort((a, b) => b.orderId - a.orderId)
@@ -52,7 +60,6 @@ export class CategoriesModel {
       }
       return id
     })) + 1
-    this.calculateMetaData()
   }
 
   addCategoryToCache(name: string): boolean {
@@ -99,7 +106,10 @@ export class CategoriesModel {
       ) {
       this.savedCategories.push({
         ...category,
-        calendars: []
+        calendars: [],
+        durationSinceMonday: 0,
+        threeMonthAverage: 0,
+        totalDuration: 0
       })
     }
     const index = this.savedCategories.findIndex(({ id }) => category.id === id)
@@ -172,7 +182,7 @@ export class CategoriesModel {
     return this.cachedCategories.sort((a, b) => b.orderId - a.orderId)
   }
 
-  getCategories(): Category[] {
+  getCategories(): CategoryMeta[] {
     return this.savedCategories.sort((a, b) => b.orderId - a.orderId)
   }
 

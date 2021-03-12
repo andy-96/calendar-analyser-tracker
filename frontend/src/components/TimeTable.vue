@@ -6,9 +6,12 @@ p-data-table.p-datatable-sm(
 )
   p-column(:expander="true" headerStyle="width: 3rem")
   p-column(field="name" header="Category")
-  p-column(field="durationSinceMondayString" header="Duration since Monday")
-  p-column(field="threeMonthAverageString" header="Three month average")
-  p-column(field="totalDurationString" header="Total Duration")
+  p-column(header="Duration since Monday")
+    template(#body="slotProps") {{ msToTime(slotProps.data.durationSinceMonday) }}
+  p-column(header="Three month average")
+    template(#body="slotProps") {{ msToTime(slotProps.data.threeMonthAverage) }}
+  p-column(header="Total Duration")
+    template(#body="slotProps") {{ msToTime(slotProps.data.totalDuration) }}
   template(#expansion="slotProps")
     p-data-table.p-datatable-sm(:value="slotProps.data.calendars" responsiveLayout="scroll")
       p-column(field="calendarName" header="Name")

@@ -1,125 +1,108 @@
 <template lang="pug">
-.home
-  <!-- add pie chart here! -->
-  p-button(icon="pi pi-cog" @click="openSettings")
-  .dashboard__modal(v-if="modalVisible")
-    .dashboard__modal--content
-      span.pi.pi-times.dashboard__modal--content_close(@click="clickOnCloseModal")
-      .dashboard__modal--content_categories
-        h4 Create categories
-        .dashboard__modal--content_categories__input
-          input(type="text" v-model="newCategory")
-          button(@click="clickOnAddCategory") Add
-        .dashboard__modal--content_categories-buttons
-          .dashboard__modal--content_categories-buttons__button(
-            v-for="category in categoriesModel.getCachedCategories()"
-            v-if="dataLoaded"
-          )
-            .dashboard__modal--content_categories-buttons__button--content(v-if="!categoryEdit[category.id].status")
-              p {{ category.name }}
-              span.pi.pi-pencil(@click="clickOnCategoryEdit(category.id)")
-            .dashboard__modal--content_categories-buttons__button--content(v-else)
-              input(type="text" v-model="categoryEdit[category.id].name")
-              span.pi.pi-check(@click="clickOnCategorySave(category.id)")
-              span.pi.pi-trash(@click="clickOnCategoryDelete(category.id)")
-        button.dashboard__modal--content_categories__save(@click="clickOnSaveCategories") Save
-      .dashboard__modal--content_table
-        p-data-table(
-          :value="calendarsModel.getCalendars()"
-        )
-          p-column(field="calendarName" header="Name")
-          p-column(header="Category")
-            template(#body="slotProps")
-              p-dropdown(
-                v-model="selectedCategories[slotProps.data.calendarId]"
-                :options="categoriesModel.getCachedCategories()"
-                optionLabel="name"
-              )
-
-  time-table(
-    :categoriesModel="categoriesModel"
+.root
+  .navbar
+    p.navbar__headline CALENDAR ANALYSER
+    p-button.navbar__settings(icon="pi pi-cog" @click="openSettings")
+  dashboard-modal(
+    :calendars="calendarsModel"
+    :categories="categoriesModel"
+    :userId="userId"
+    v-if="modalVisible"
+    @clickClose="clickOnCloseModal"
   )
+  .dashboard
+    p-chart.dashboard__chart(
+      type="pie"
+      :data="chartData"
+      :options="chartOptions"
+      height="30"
+      width="30"
+    )
+    time-table.dashboard__timetable(
+      :categoriesModel="categoriesModel"
+    )
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { backend } from '@/utils'
-import { SelectedCategories, CategorySparse, CategoryEdit } from '@/interfaces'
+
+import { backend, msToTime } from '@/utils'
 import { CalendarsModel, CategoriesModel } from '@/data-models'
 import TimeTable from '@/components/TimeTable.vue'
+import DashboardModal from '@/components/DashboardModal.vue'
 
 export default defineComponent ({
   data: () => ({
     dataLoaded: false,
     userId: '' as string | string[],
     modalVisible: true,
-    categoryEdit: {} as CategoryEdit,
-    calendarsModel: new CalendarsModel(),
-    newCategory: '',
-    selectedCategories: {} as SelectedCategories,
-    categoriesModel: new CategoriesModel(),
-    expandedRows: [],
+    calendarsModel: new CalendarsModel() as CalendarsModel,
+    categoriesModel: new CategoriesModel() as CategoriesModel,
+    backgroundColors: ['#50FFB1', '#4FB286', '#3C896D', '#546D64', '#4D685A', '#8E3B46', '#E0777D', '#C16200', '#881600', '#4E0110'],
+    hoverBackgroundColors: ['#0AFF91', '#38805F', '#255544', '#35453F', '#2B3B33', '#56242B', '#D2373F', '#7A3D00', '#3D0A00', '#280109']
   }),
   components: {
-    'time-table': TimeTable
+    'time-table': TimeTable,
+    'dashboard-modal': DashboardModal
+  },
+  computed: {
+    chartData() {
+      const dataCategories: number[] = []
+      const labelsCategories: string[] = []
+      const backgroundColorCategories: string[] = []
+      const hoverBackgroundColorCategories: string[] = []
+      const dataCalendars: number[] = []
+      const labelsCalendars: string[] = []
+      this.categoriesModel.getCategories().map(({ id, name, durationSinceMonday, calendars }, i) => {
+        if (id === 0) return // skip not assigned
+        calendars.map(({ calendarName, durationSinceMonday }, i) => {
+          dataCalendars.push(durationSinceMonday)
+          labelsCalendars.push(calendarName)
+        })
+        dataCategories.push(durationSinceMonday)
+        labelsCategories.push(name)
+        backgroundColorCategories.push(this.backgroundColors[this.backgroundColors.length - 1 - i])
+        backgroundColorCategories.push(this.hoverBackgroundColors[this.hoverBackgroundColors.length - 1 - i])
+      })
+      return {
+        labels: [1, 2, 3, 4],
+        datasets: [
+          {
+            data: dataCategories,
+            labels: labelsCategories,
+            backgroundColor: backgroundColorCategories,
+            hoverBackgroundColor: hoverBackgroundColorCategories
+          },
+          {
+            data: dataCalendars,
+            labels: labelsCalendars,
+          }
+        ]
+      }
+    },
+    chartOptions() {
+      return {
+        responsive: true,
+        legend: {
+          display: false,
+        },
+        tooltips: {
+          callbacks: {
+            label: function(tooltipItem: any, data: any) {
+              const dataset = data.datasets[tooltipItem.datasetIndex]
+              const index = tooltipItem.index
+              return dataset.labels[index] + ': ' + msToTime(dataset.data[index])
+            }
+          }
+        }
+      }
+    }
   },
   methods: {
-    clickOnCloseModal(): void {
-      this.modalVisible = false
-    },
-    clickOnCategoryEdit(id: number): void {
-      this.categoryEdit[id].status = true
-    },
-    clickOnCategorySave(id: number): void {
-      if (!this.categoriesModel.renameCategoryFromCache(id, this.categoryEdit[id])) {
-        alert("Category shouldn't be empty!")
-      }
-      const selectedCalendars = Object.keys(this.selectedCategories)
-      selectedCalendars.map(calId => {
-        if (this.selectedCategories[calId].id === id) {
-          this.selectedCategories[calId].name = this.categoryEdit[id].name
-        }
-      })
-      this.categoryEdit[id].status = false
-    },
-    clickOnCategoryDelete(id: number): void {
-      this.categoriesModel.removeCategoryFromCache(id)
-      const selectedCalendars = Object.keys(this.selectedCategories)
-      selectedCalendars.map(calId => {
-        if (this.selectedCategories[calId].id === id) {
-          this.selectedCategories[calId] = this.categoriesModel.getNotAssignedCategory()
-        }
-      })
-      this.categoryEdit[id].status = false
-    },
-    clickOnAddCategory(): void {
-      if (!this.categoriesModel.addCategoryToCache(this.newCategory)) {
-        alert('Something went wrong!')
-      }
-      this.categoryEdit = this.categoriesModel.getCategoryEdit()
-      this.newCategory = ''
-    },
     openSettings(): void {
-      this.categoriesModel.loadSavedCategoriesToCache()
-      this.selectedCategories = this.categoriesModel.getSelectedCategories()
-      this.categoryEdit = this.categoriesModel.getCategoryEdit()
       this.modalVisible = true
     },
-    async clickOnSaveCategories(): Promise<void> {
-      // clean categories
-      this.categoriesModel.clearCategories()
-      // save calendars to categories
-      this.calendarsModel.getCalendars().map(cal => {
-        const category: CategorySparse = this.selectedCategories[cal.calendarId]
-        this.categoriesModel.addCalendarToCategory(cal, category)
-      })
-
-      this.categoriesModel.calculateMetaData()
-      const categoriesSparse = this.categoriesModel.getCategoriesSparse()
-      await backend.post('/save-categories', {
-        userId: this.userId,
-        categoriesSparse
-      })
+    clickOnCloseModal(): void {
       this.modalVisible = false
     }
   },
@@ -144,130 +127,52 @@ export default defineComponent ({
 </script>
 
 <style lang="sass">
-// Otherwise there is a weird box in the dropdown menu
-.p-hidden-accessible
-  display: none
+.navbar
+  height: 4rem
+  width: 100%
+  background-color: #FFD23F
+  box-shadow: 0px 2px 5px 1px rgba(0, 0, 0, 0.2)
+  position: fixed
+  left: 0
+  top:0
+  z-index: 1
+
+  &__settings
+    background-color: transparent
+    border-color: transparent
+    color: #444
+    position: absolute
+    right: 20px
+    top: 50%
+    transform: translateY(-50%)
+    &:hover
+      color: #888 !important
+      background-color: transparent !important
+      border-color: transparent !important
+    &:focus
+      box-shadow: 0 0 0 0 transparent
+  
+  .pi
+    font-size: 1.2rem
+  
+  &__headline
+    position: absolute
+    left: 20px
+    top: 2rem
+    font-weight: 700
+    transform: translateY(-50%)
+    margin: 0
 
 .dashboard
-  &__modal
-    width: 100%
-    height: 100%
-    left: 0
-    top:0
-    position: fixed
-    z-index: 1
-    background-color: rgba(0, 0, 0, 0.3)
+  display: flex
+  margin-top: 6rem
 
-    &--content
-      display: flex
-      margin:
-        top: 5%
-        left: auto
-        right: auto
-      height: 80%
-      width: 80%
-      position: relative
+  &__chart
+    flex: 2
+    margin:
+      right: 2rem
+      left: 2rem
 
-      &_close
-        position: absolute
-        left: 1rem
-        top: 1rem
-        z-index: 2
-        cursor: pointer
-
-      &_categories
-        flex: 1
-        background-color: #FFD23F
-        position: relative
-        padding: 1%
-
-        &-buttons
-          &__button
-            display: inline-block
-            background-color: #C33C54
-            border-radius: 2rem
-            margin:
-              top: 0.5rem
-              bottom: 0.5rem
-              right: 0.5rem
-
-            &:hover
-              background-color: #AC354B
-
-            &--content
-              display: flex
-              margin: 0.3rem 0.5rem 0.3rem 0.5rem
-              height: 1rem
-
-              p
-                font-size: 0.7rem
-                margin: 0
-                color: white
-
-              span
-                font-size: 0.7rem
-                color: white
-                margin-left: 0.3rem
-                margin-top: 0.15rem
-                cursor: pointer
-
-              input
-                height: 1rem
-                width: 5rem
-                font-size: 0.7rem
-                border-color: transparent
-                background-color: #AC354B
-                color: white
-                &:focus
-                  outline: none !important
-
-        &__input
-          input
-            height: 2rem
-            padding: 0.5rem
-            border:
-              radius: 8px 0px 0px 8px
-              color: transparent
-              width: 1px
-            margin-bottom: 0.5rem
-            &:focus
-              outline: none
-
-          button
-            height: 2rem
-            padding: 0.5rem
-            background-color: #999
-            color: white
-            cursor: pointer
-            border:
-              radius: 0px 8px 8px 0px
-              color: transparent
-              width: 1px
-            &:hover
-              background-color: #777
-
-        &__save
-          position: absolute
-          height: 2rem
-          padding: 0.5rem
-          width: 80%
-          background-color: #B88D00
-          color: white
-          cursor: pointer
-          bottom: 2rem
-          left: 10%
-          border:
-            radius: 8px
-            color: transparent
-            width: 1px
-          &:hover
-            background-color: #8F6D00
-          &:focus
-            outline: none
-          
-
-      &_table
-        flex: 3
-        overflow: scroll
-        background-color: white
+  &__timetable
+    flex: 4
 </style>

@@ -28,7 +28,6 @@ export class CalendarsModel {
         const totalDuration = events
           .map(({ duration }) => duration)
           .reduce((a, b) => Number(a) + Number(b), 0)
-        const totalDurationString = msToTime(totalDuration)
 
         // Get latest duration
         const durationSinceMonday = events
@@ -39,7 +38,6 @@ export class CalendarsModel {
             return 0
           })
           .reduce((a, b) => Number(a) + Number(b), 0)
-        const durationSinceMondayString = msToTime(durationSinceMonday)
 
         // Get average duration
         let threeMonthAverage = events
@@ -55,16 +53,12 @@ export class CalendarsModel {
           threeMonthAverage /
           ((Number(monthEnd) - Number(monthBegin)) / 1000 / 60 / 60 / 24 / 7)
 
-        const threeMonthAverageString = msToTime(threeMonthAverage)
         return {
           ...calendarInfo,
           events,
           totalDuration,
-          totalDurationString,
           threeMonthAverage,
-          threeMonthAverageString,
-          durationSinceMonday,
-          durationSinceMondayString
+          durationSinceMonday
         }
       })
       // sort by date

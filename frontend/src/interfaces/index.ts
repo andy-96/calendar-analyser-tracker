@@ -8,11 +8,8 @@ export interface RawCalendar {
 
 export interface Calendar extends RawCalendar {
   totalDuration: number
-  totalDurationString: string
   threeMonthAverage: number
-  threeMonthAverageString: string
   durationSinceMonday: number
-  durationSinceMondayString: string
 }
 
 export interface EventSparse {
@@ -42,6 +39,12 @@ export interface CategorySparse {
 
 export interface Category extends CategorySparse {
   calendars: Calendar[]
+}
+
+export interface CategoryMeta extends Category {
+  totalDuration: number
+  threeMonthAverage: number
+  durationSinceMonday: number
 }
 
 export interface FirebaseCategory extends CategorySparse {
