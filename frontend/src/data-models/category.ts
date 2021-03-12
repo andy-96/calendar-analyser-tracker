@@ -51,10 +51,7 @@ export class CategoriesModel {
         return 0
       }
       return id
-    }))
-    if (this.categoryId === 0) {
-      this.categoryId = 1
-    }
+    })) + 1
     this.calculateMetaData()
   }
 
@@ -130,18 +127,12 @@ export class CategoriesModel {
           totalDuration += totalDur
         }
       )
-      const threeMonthAverageString = msToTime(threeMonthAverage)
-      const totalDurationString = msToTime(totalDuration)
-      const durationSinceMondayString = msToTime(durationSinceMonday)
       return {
         ...category,
         calendars,
         durationSinceMonday,
-        durationSinceMondayString,
         threeMonthAverage,
-        threeMonthAverageString,
-        totalDuration,
-        totalDurationString
+        totalDuration
       }
     })
   }

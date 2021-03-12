@@ -51,6 +51,7 @@ import TimeTable from '@/components/TimeTable.vue'
 export default defineComponent ({
   data: () => ({
     dataLoaded: false,
+    userId: '' as string | string[],
     modalVisible: true,
     categoryEdit: {} as CategoryEdit,
     calendarsModel: new CalendarsModel(),
@@ -115,17 +116,17 @@ export default defineComponent ({
 
       this.categoriesModel.calculateMetaData()
       const categoriesSparse = this.categoriesModel.getCategoriesSparse()
-      // TODO: hardcoded user!
-      const res = await backend.post('/save-categories', {
-        userId: '123',
+      await backend.post('/save-categories', {
+        userId: this.userId,
         categoriesSparse
       })
       this.modalVisible = false
     }
   },
   async mounted() {
+    this.userId = this.$route.params.userId
     const { data: { events, categories } } = await backend.post('/', {
-      userId: '123'
+      userId: this.userId
     })
     this.calendarsModel.updateRawCalendars(events)
 

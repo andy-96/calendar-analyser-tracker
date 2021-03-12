@@ -1,5 +1,5 @@
 <template lang="pug">
-p-data-table(
+p-data-table.p-datatable-sm(
   :value="categoriesModel.getCategories()"
   v-model:expandedRows="expandedRows"
   dataKey="id"
@@ -10,16 +10,20 @@ p-data-table(
   p-column(field="threeMonthAverageString" header="Three month average")
   p-column(field="totalDurationString" header="Total Duration")
   template(#expansion="slotProps")
-    p-data-table(:value="slotProps.data.calendars" responsiveLayout="scroll")
+    p-data-table.p-datatable-sm(:value="slotProps.data.calendars" responsiveLayout="scroll")
       p-column(field="calendarName" header="Name")
-      p-column(field="durationSinceMondayString" header="Duration since Monday")
-      p-column(field="threeMonthAverageString" header="Three month average")
-      p-column(field="totalDurationString" header="Total Duration")
+      p-column(header="Duration since Monday")
+        template(#body="slotProps") {{ msToTime(slotProps.data.durationSinceMonday) }}
+      p-column(header="Three month average")
+        template(#body="slotProps") {{ msToTime(slotProps.data.threeMonthAverage) }}
+      p-column(header="Total Duration")
+        template(#body="slotProps") {{ msToTime(slotProps.data.totalDuration) }}
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { CategoriesModel } from '@/data-models'
+import { msToTime } from '@/utils'
 
 export default defineComponent ({
   name: 'TimeTable',
@@ -28,6 +32,11 @@ export default defineComponent ({
   }),
   props: {
     categoriesModel: CategoriesModel
+  },
+  methods: {
+    msToTime(ms: number): string {
+      return msToTime(ms)
+    }
   }
 })
 </script>
