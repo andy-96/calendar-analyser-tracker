@@ -1,30 +1,28 @@
 <template lang="pug">
-  v-app
-    v-app-bar(app color='blue-grey' dark)
-      .d-flex.align-center
-        v-img(
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        )
-        v-toolbar-title Calendar Analyser
-      v-spacer
-    h1 COoo
-    Calendar
+router-view
 </template>
 
-<script>
-import Calendar from './components/Calendar.vue'
+<style lang="sass">
+@import './../node_modules/primevue/resources/themes/saga-blue/theme.css'
+#app
+  font-family: Avenir, Helvetica, Arial, sans-serif
+  -webkit-font-smoothing: antialiased
+  -moz-osx-font-smoothing: grayscale
+  text-align: center
+  color: #2c3e50
+  margin: -8px
 
-export default {
-  name: 'App',
-  components: {
-    Calendar,
-  },
-}
-</script>
+#nav
+  padding: 30px
 
-<style lang="sass" scoped></style>
+#nav a
+  font-weight: bold
+  color: #2c3e50
+
+#nav a.router-link-exact-active
+  color: #42b983
+
+// Otherwise there is a weird box in the dropdown menu
+.p-hidden-accessible
+  display: none
+</style>
