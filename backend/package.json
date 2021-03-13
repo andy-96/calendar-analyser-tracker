@@ -32,6 +32,7 @@
     "firebase": "^8.3.0",
     "fs": "^0.0.1-security",
     "googleapis": "^67.1.1",
+    "md5": "^2.3.0",
     "passport": "^0.4.1",
     "passport-google-oauth": "^2.0.0",
     "passport-google-oauth20": "^2.0.0",

@@ -1,6 +1,6 @@
 <template lang="pug">
 .modal
-  .modal__content
+  .modal__content(v-if="dataLoaded")
     span.pi.pi-times.modal__content--close(@click="clickOnCloseModal")
     .modal__content--categories
       h4 Create categories
@@ -9,7 +9,7 @@
         button(@click="clickOnAddCategory") Add
       .modal__content--categories_buttons
         .modal__content--categories_buttons-button(
-          v-for="category in categoriesModel.getCachedCategories()"
+          v-for="category in categories"
         )
           .modal__content--categories_buttons-button__content(v-if="!categoryEdit[category.id].status")
             p {{ category.name }}
@@ -21,37 +21,46 @@
       button.modal__content--categories_save(@click="clickOnSaveCategories") Save
     .modal__content--table
       p-data-table(
-        :value="calendarsModel.getCalendars()"
+        :value="calendars"
       )
         p-column(field="calendarName" header="Name")
         p-column(header="Category")
           template(#body="slotProps")
             p-dropdown(
               v-model="selectedCategories[slotProps.data.calendarId]"
-              :options="categoriesModel.getCachedCategories()"
+              :options="categories"
               optionLabel="name"
             )
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { CategorySparse, CategoryEdit, SelectedCategories } from '@/interfaces'
+import { CategorySparse, CategoryEdit, SelectedCategories, Calendar } from '@/interfaces'
 import { backend } from '@/utils'
 import { CalendarsModel, CategoriesModel } from '@/data-models'
 
 export default defineComponent ({
   name: 'DashboardModal',
-  data: () => ({
-    categoryEdit: {} as CategoryEdit,
-    newCategory: '',
-    selectedCategories: {} as SelectedCategories,
-    expandedRows: [],
-    calendarsModel: new CalendarsModel,
-    categoriesModel: new CategoriesModel
-  }),
+  data() {
+    return {
+      newCategory: '',
+      expandedRows: [],
+      dataLoaded: false,
+      categoryEdit: {} as CategoryEdit,
+      selectedCategories: {} as SelectedCategories,
+      categories: [] as CategorySparse[],
+      calendars: [] as Calendar[]
+    }
+  },
   props: {
-    calendars: CalendarsModel,
-    categories: CategoriesModel,
+    calendarsModel: {
+      type: CalendarsModel,
+      required: true
+    },
+    categoriesModel: {
+      type: CategoriesModel,
+      required: true
+    },
     userId: String
   },
   methods: {
@@ -101,7 +110,11 @@ export default defineComponent ({
 
       this.categoriesModel.calculateMetaData()
       const categoriesSparse = this.categoriesModel.getCategoriesSparse()
-      await backend.post('/save-categories', {
+      let endpoint = '/save-categories'
+      if (this.$route.params.userId === '123') {
+        endpoint = '/test'
+      }
+      await backend.post(endpoint, {
         userId: this.userId,
         categoriesSparse
       })
@@ -109,15 +122,12 @@ export default defineComponent ({
     }
   },
   mounted() {
-    if (typeof this.calendars !== 'undefined') {
-      this.calendarsModel = this.calendars
-    }
-    if (typeof this.categories !== 'undefined') {
-      this.categoriesModel = this.categories
-    }
     this.categoriesModel.loadSavedCategoriesToCache()
+    this.calendars = this.calendarsModel.getCalendars()
     this.selectedCategories = this.categoriesModel.getSelectedCategories()
     this.categoryEdit = this.categoriesModel.getCategoryEdit()
+    this.categories = this.categoriesModel.getCachedCategories()
+    this.dataLoaded = true
   }
 })
 </script>

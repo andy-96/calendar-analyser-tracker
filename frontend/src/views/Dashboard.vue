@@ -3,11 +3,14 @@
   .navbar
     p.navbar__headline CALENDAR ANALYSER
     p-button.navbar__settings(icon="pi pi-cog" @click="openSettings")
+    p.navbar__logout logout
+  .overlay(v-if="!dataLoaded")
+    p-spinner.overlay__spinner
   dashboard-modal(
-    :calendars="calendarsModel"
-    :categories="categoriesModel"
-    :userId="userId"
     v-if="modalVisible"
+    :calendarsModel="calendarsModel"
+    :categoriesModel="categoriesModel"
+    :userId="userId"
     @clickClose="clickOnCloseModal"
   )
   .dashboard
@@ -15,8 +18,8 @@
       type="pie"
       :data="chartData"
       :options="chartOptions"
-      height="30"
-      width="30"
+      :height="30"
+      :width="30"
     )
     time-table.dashboard__timetable(
       :categoriesModel="categoriesModel"
@@ -27,6 +30,7 @@
 import { defineComponent } from 'vue'
 
 import { backend, msToTime } from '@/utils'
+import { SelectedCategories, CategoryEdit } from '@/interfaces'
 import { CalendarsModel, CategoriesModel } from '@/data-models'
 import TimeTable from '@/components/TimeTable.vue'
 import DashboardModal from '@/components/DashboardModal.vue'
@@ -35,11 +39,11 @@ export default defineComponent ({
   data: () => ({
     dataLoaded: false,
     userId: '' as string | string[],
-    modalVisible: true,
+    modalVisible: false,
     calendarsModel: new CalendarsModel() as CalendarsModel,
     categoriesModel: new CategoriesModel() as CategoriesModel,
     backgroundColors: ['#50FFB1', '#4FB286', '#3C896D', '#546D64', '#4D685A', '#8E3B46', '#E0777D', '#C16200', '#881600', '#4E0110'],
-    hoverBackgroundColors: ['#0AFF91', '#38805F', '#255544', '#35453F', '#2B3B33', '#56242B', '#D2373F', '#7A3D00', '#3D0A00', '#280109']
+    hoverBackgroundColors: ['#0AFF91', '#38805F', '#255544', '#35453F', '#2B3B33', '#56242B', '#D2373F', '#7A3D00', '#3D0A00', '#280109'],
   }),
   components: {
     'time-table': TimeTable,
@@ -107,30 +111,49 @@ export default defineComponent ({
     }
   },
   async mounted() {
-    this.userId = this.$route.params.userId
-    let endpoint = '/'
-    if (this.userId === '123') {
-      endpoint = '/test'
-    }
-    const { data: { events, categories } } = await backend.post(endpoint, {
-      userId: this.userId
-    })
-    this.calendarsModel.updateRawCalendars(events)
+    try {
+      this.userId = this.$route.params.userId
+      // TODO: there must be a better method than this...
+      let endpoint = '/'
+      if (this.userId === '123') {
+        endpoint = '/test'
+      }
+      const { data: { events, categories } } = await backend.post(endpoint, {
+        userId: this.userId
+      })
 
-    if (categories.length === 0) {
-      // Set all calendars to not assigned
-      this.categoriesModel.initialSetup(this.calendarsModel)
-      this.openSettings()
-    } else {
-      this.categoriesModel.updateCategoriesFromDatabase(categories, this.calendarsModel)
-      this.modalVisible = false
+      this.calendarsModel.updateRawCalendars(events)
+
+      if (categories.length === 0) {
+        // Set all calendars to not assigned
+        this.categoriesModel.initialSetup(this.calendarsModel)
+        this.openSettings()
+      } else {
+        this.categoriesModel.updateCategoriesFromDatabase(categories, this.calendarsModel)
+        this.modalVisible = false
+      }
+      this.dataLoaded = true
+    } catch (err) {
+      this.$router.push({ name: 'Login' })
     }
-    this.dataLoaded = true
   }
 })
 </script>
 
 <style lang="sass">
+.overlay
+  position: fixed
+  height: 100%
+  width: 100%
+  background-color: white
+  top: 0
+  z-index: 10
+
+  &__spinner
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+
 .navbar
   height: 4rem
   width: 100%
@@ -139,16 +162,17 @@ export default defineComponent ({
   position: fixed
   left: 0
   top:0
-  z-index: 1
+  z-index: 11
 
   &__settings
     background-color: transparent
     border-color: transparent
     color: #444
     position: absolute
-    right: 20px
+    right: 80px
     top: 50%
     transform: translateY(-50%)
+    cursor: pointer
     &:hover
       color: #888 !important
       background-color: transparent !important
@@ -158,6 +182,19 @@ export default defineComponent ({
   
   .pi
     font-size: 1.2rem
+  
+  &__logout
+    position: absolute
+    right: 20px
+    top: 50%
+    transform: translateY(-50%)
+    cursor: pointer
+    color: #444
+    &:hover
+      color: #888
+
+  p
+    margin: 0
   
   &__headline
     position: absolute

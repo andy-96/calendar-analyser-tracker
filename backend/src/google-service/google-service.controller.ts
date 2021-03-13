@@ -1,4 +1,5 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common'
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common'
+import * as md5 from 'md5'
 
 import { LoginGuard } from '@/guards/login.guard'
 import { GoogleService } from './google-service.service'
@@ -13,7 +14,9 @@ export class GoogleServiceController {
 
   @Get('redirect')
   @UseGuards(LoginGuard)
-  googleAuthRedirect(@Req() req) {
-    return this.googleService.authorizePassport(req.user)
+  async googleAuthRedirect(@Req() req, @Res() res) {
+    const hashedEmail = md5(req.user.email)
+    await this.googleService.authorizePassport(req.user)
+    res.redirect(`/#/dashboard/${hashedEmail}`)
   }
 }

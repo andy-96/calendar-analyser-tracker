@@ -10,6 +10,7 @@ import InputText from 'primevue/inputtext'
 import Dropdown from 'primevue/dropdown'
 import Checkbox from 'primevue/checkbox'
 import Chart from 'primevue/chart'
+import ProgressSpinner from 'primevue/progressspinner'
 
 import App from '@/App.vue'
 import router from '@/router'
@@ -26,4 +27,5 @@ createApp(App)
   .component('p-dropdown', Dropdown)
   .component('p-checkbox', Checkbox)
   .component('p-chart', Chart)
+  .component('p-spinner', ProgressSpinner)
   .mount('#app')
