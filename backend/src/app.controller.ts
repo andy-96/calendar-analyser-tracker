@@ -1,8 +1,8 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post } from '@nestjs/common'
-import { Http2ServerResponse } from 'node:http2'
+import { Body, Controller, HttpException, HttpStatus, Logger, Post, UseGuards } from '@nestjs/common'
+
 import { FirebaseService } from './firebase/firebase.service'
 import { GoogleService } from './google-service/google-service.service'
-import { EventByCalendar } from './interfaces'
+import { AuthenticatedGuard } from '@/guards/authenticated.guard'
 
 @Controller()
 export class AppController {
@@ -14,6 +14,7 @@ export class AppController {
   ) {}
 
   @Post()
+  @UseGuards(AuthenticatedGuard)
   async getAllData(@Body() payload): Promise<any> {
     this.logger.log('Client has reloaded')
     const events = await this.googleService.getEvents()
@@ -24,6 +25,7 @@ export class AppController {
   }
 
   @Post('/save-categories')
+  @UseGuards(AuthenticatedGuard)
   async saveCategories(@Body() categories): Promise<any> {
     if (await this.firebaseService.updateCategories(categories)) {
       return

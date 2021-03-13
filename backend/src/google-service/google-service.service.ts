@@ -17,7 +17,20 @@ export class GoogleService {
   private readonly logger = new Logger('GoogleService')
 
   constructor () {
-    this.authorize()
+  }
+
+  async authorizePassport(userData): Promise<void> {
+    const oAuth2Client: OAuth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URIS
+    )
+
+    oAuth2Client.setCredentials({
+      access_token: userData.accessToken
+    })
+
+    this.googleCalendar = google.calendar({ version: 'v3', auth: oAuth2Client })
   }
 
   private authorize(): void {
@@ -26,7 +39,7 @@ export class GoogleService {
       process.env.GOOGLE_CLIENT_SECRET,
       process.env.GOOGLE_REDIRECT_URIS
     )
-  
+
     // Check if we have previously stored a token.
     fs.readFile(process.env.GOOGLE_TOKEN_PATH, (err, token) => {
       if (err) return this.getAccessToken(oAuth2Client)
