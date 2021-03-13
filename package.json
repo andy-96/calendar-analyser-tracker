@@ -1,5 +1,7 @@
 {
-  "devDependencies": {
-    "@types/node": "^14.14.34"
-  }
+  "scripts": {
+    "start": "cd backend && yarn start",
+    "build": "cd frontend && yarn build && yarn stage && cd ../backend && yarn build"
+  },
+  "heroku-run-build-script": true
 }
