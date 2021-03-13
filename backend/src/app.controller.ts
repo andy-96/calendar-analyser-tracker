@@ -24,6 +24,17 @@ export class AppController {
     }
   }
 
+  @Post('/test')
+  async getAllTestData(@Body() payload): Promise<any> {
+    this.logger.log('Client has reloaded')
+    await this.googleService.authorize()
+    const events = await this.googleService.getEvents()
+    const categories = await this.firebaseService.fetchCategories(payload.userId)
+    return {
+      events, categories
+    }
+  }
+
   @Post('/save-categories')
   @UseGuards(AuthenticatedGuard)
   async saveCategories(@Body() categories): Promise<any> {

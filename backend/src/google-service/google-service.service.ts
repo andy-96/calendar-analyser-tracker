@@ -3,11 +3,14 @@ import { google } from 'googleapis'
 import { OAuth2Client } from 'google-auth-library'
 import { GaxiosResponse } from 'gaxios'
 import * as fs from 'fs'
+import * as util from 'util'
 import * as readline from 'readline'
 
 import { CalendarModel } from '@/data-models/calendars'
 import { CalendarSparse, EventByCalendar, GoogleCalendar, GoogleCalendarList, GoogleEventList } from '@/interfaces'
 import { EventsModel } from '@/data-models/events'
+
+const readFile = util.promisify(fs.readFile)
 
 @Injectable()
 export class GoogleService {
@@ -15,9 +18,6 @@ export class GoogleService {
   private calendars: CalendarModel = new CalendarModel
   private events: EventsModel = new EventsModel
   private readonly logger = new Logger('GoogleService')
-
-  constructor () {
-  }
 
   async authorizePassport(userData): Promise<void> {
     const oAuth2Client: OAuth2Client = new google.auth.OAuth2(
@@ -33,7 +33,7 @@ export class GoogleService {
     this.googleCalendar = google.calendar({ version: 'v3', auth: oAuth2Client })
   }
 
-  private authorize(): void {
+  async authorize(): Promise<void> {
     const oAuth2Client: OAuth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
@@ -41,11 +41,18 @@ export class GoogleService {
     )
 
     // Check if we have previously stored a token.
-    fs.readFile(process.env.GOOGLE_TOKEN_PATH, (err, token) => {
-      if (err) return this.getAccessToken(oAuth2Client)
+    try {
+      const token = await readFile(process.env.GOOGLE_TOKEN_PATH)
       oAuth2Client.setCredentials(JSON.parse(token.toString()))
       this.googleCalendar = google.calendar({ version: 'v3', auth: oAuth2Client })
-    })
+    } catch (err) {
+      this.logger.warn(`Something went wrong while authorizing due to ${err}`)
+      const auth = this.getAccessToken(oAuth2Client)
+      if (typeof auth !== 'undefined') {
+        this.googleCalendar = google.calendar({ version: 'v3', auth })
+      }
+    }
+    this.logger.debug('authorized')
   }
 
   private getAccessToken(oAuth2Client: OAuth2Client): void | OAuth2Client {
@@ -53,7 +60,7 @@ export class GoogleService {
       access_type: 'offline',
       scope: process.env.GOOGLE_SCOPES,
     })
-    console.log('Authorize this app by visiting this url:', authUrl)
+    this.logger.debug('Authorize this app by visiting this url:', authUrl)
     const rl: readline.Interface = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -61,12 +68,12 @@ export class GoogleService {
     rl.question('Enter the code from that page here: ', (code) => {
       rl.close()
       oAuth2Client.getToken(code, (err, token) => {
-        if (err) return console.error('Error retrieving access token', err)
+        if (err) return this.logger.error(`Error retrieving access token due to ${err}`)
         oAuth2Client.setCredentials(token)
         // Store the token to disk for later program executions
         fs.writeFile(process.env.GOOGLE_TOKEN_PATH, JSON.stringify(token), (err) => {
-          if (err) return console.error(err)
-          console.log('Token stored to', process.env.GOOGLE_TOKEN_PATH)
+          if (err) return this.logger.error(`Error writing token to file due to ${err}`)
+          this.logger.debug('Token stored to', process.env.GOOGLE_TOKEN_PATH)
         })
         return oAuth2Client
       })
@@ -74,6 +81,7 @@ export class GoogleService {
   }
 
   async getEvents(): Promise<EventByCalendar[]> {
+    this.logger.debug('getEvents')
     await this.fetchCalendars()
     const events = await this.fetchEvents()
     return events

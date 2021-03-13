@@ -108,7 +108,11 @@ export default defineComponent ({
   },
   async mounted() {
     this.userId = this.$route.params.userId
-    const { data: { events, categories } } = await backend.post('/', {
+    let endpoint = '/'
+    if (this.userId === '123') {
+      endpoint = '/test'
+    }
+    const { data: { events, categories } } = await backend.post(endpoint, {
       userId: this.userId
     })
     this.calendarsModel.updateRawCalendars(events)
