@@ -11,7 +11,7 @@ async function bootstrap() {
   app.enableCors()
   app.use(
     session({
-      secret: 'nest cats',
+      secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
     }),

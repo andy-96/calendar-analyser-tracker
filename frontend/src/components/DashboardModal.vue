@@ -112,7 +112,7 @@ export default defineComponent ({
       const categoriesSparse = this.categoriesModel.getCategoriesSparse()
       let endpoint = '/save-categories'
       if (this.$route.params.userId === '123') {
-        endpoint = '/test'
+        endpoint = '/save-categories-test'
       }
       await backend.post(endpoint, {
         userId: this.userId,

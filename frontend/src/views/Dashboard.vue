@@ -3,7 +3,7 @@
   .navbar
     p.navbar__headline CALENDAR ANALYSER
     p-button.navbar__settings(icon="pi pi-cog" @click="openSettings")
-    p.navbar__logout logout
+    p.navbar__logout(@click="clickOnLogout") logout
   .overlay(v-if="!dataLoaded")
     p-spinner.overlay__spinner
   dashboard-modal(
@@ -34,6 +34,7 @@ import { SelectedCategories, CategoryEdit } from '@/interfaces'
 import { CalendarsModel, CategoriesModel } from '@/data-models'
 import TimeTable from '@/components/TimeTable.vue'
 import DashboardModal from '@/components/DashboardModal.vue'
+import { resolveCname } from 'node:dns'
 
 export default defineComponent ({
   data: () => ({
@@ -108,6 +109,10 @@ export default defineComponent ({
     },
     clickOnCloseModal(): void {
       this.modalVisible = false
+    },
+    async clickOnLogout(): Promise<void> {
+      const res = await backend.get('/logout')
+      this.$router.push({ name: 'Login' })
     }
   },
   async mounted() {
@@ -134,6 +139,7 @@ export default defineComponent ({
       }
       this.dataLoaded = true
     } catch (err) {
+      console.log(err)
       this.$router.push({ name: 'Login' })
     }
   }

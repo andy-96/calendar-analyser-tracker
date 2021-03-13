@@ -1,4 +1,5 @@
-import { Body, Controller, HttpException, HttpStatus, Logger, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post, Request, Res, UseGuards } from '@nestjs/common'
+import * as md5 from 'md5'
 
 import { FirebaseService } from './firebase/firebase.service'
 import { GoogleService } from './google-service/google-service.service'
@@ -15,8 +16,11 @@ export class AppController {
 
   @Post()
   @UseGuards(AuthenticatedGuard)
-  async getAllData(@Body() payload): Promise<any> {
+  async getAllData(@Body() payload, @Request() req): Promise<any> {
     this.logger.log('Client has reloaded')
+    if (md5(req.user.email) !== payload.userId) {
+      throw new HttpException('Not Authorized!', HttpStatus.UNAUTHORIZED)
+    }
     const events = await this.googleService.getEvents()
     const categories = await this.firebaseService.fetchCategories(payload.userId)
     return {
@@ -43,5 +47,21 @@ export class AppController {
     } else {
       throw new HttpException('There was an error', HttpStatus.INTERNAL_SERVER_ERROR)
     }
+  }
+
+  @Post('/save-categories-test')
+  async saveCategoriesTest(@Body() categories): Promise<any> {
+    if (await this.firebaseService.updateCategories(categories)) {
+      return
+    } else {
+      throw new HttpException('There was an error', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  @Get('/logout')
+  logout(@Request() req): string {
+    this.logger.log('Logout!')
+    req.logout()
+    return 'success'
   }
 }
