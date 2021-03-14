@@ -5,7 +5,7 @@
   },
   "scripts": {
     "start": "cd backend && yarn start",
-    "heroku-prebuild": "cd frontend && yarn && cd ../backend && yarn",
+    "heroku-prebuild": "yarn global add @vue/cli && cd frontend && yarn && cd ../backend && yarn",
     "build": "cd frontend && yarn build && yarn stage && cd ../backend && yarn build"
   },
   "heroku-run-build-script": true
