@@ -28,6 +28,7 @@ export class CategoriesModel {
   }
 
   updateCategoriesFromDatabase(categories: FirebaseCategory[], calendarsModel: CalendarsModel): void {
+    console.log(categories)
     this.savedCategories = categories.map(({ calendars: calendarIds, ...category }) => {
       const calendars: Calendar[] = []
       let durationSinceMonday = 0

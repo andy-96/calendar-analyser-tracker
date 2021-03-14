@@ -2,6 +2,7 @@
 token.json
 backend old
 */public
+app.yaml
 
 # Logs
 logs
@@ -110,3 +111,7 @@ dist
 
 credentials.json
 token.json
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

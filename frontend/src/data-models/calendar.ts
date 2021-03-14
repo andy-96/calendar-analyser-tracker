@@ -12,7 +12,8 @@ export class CalendarsModel {
 
   private createNewCalendarsTable(): void {
     const now = new Date()
-    const nowDay = now.getDay() - 1 // range is 0 - 6 (sunday - saturday)
+    const nowDay = now.getDay() === 0 ? 6 : now.getDay() - 1 // range is 0 - 6 (sunday - saturday)
+    console.log(nowDay)
     const lastMonday = new Date(
       now.getFullYear(),
       now.getMonth(),
