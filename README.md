@@ -1,4 +1,5 @@
 # Quick Start
 
 1. Start MongoDB: `mongod`
-2. 
+
+Every time deploying to GCP change `.env`!
