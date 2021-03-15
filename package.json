@@ -6,7 +6,7 @@
   },
   "scripts": {
     "start": "cd backend && node dist/main",
-    "heroku-prebuild": "yarn global add @vue/cli && yarn add @vue/cli-service && cd frontend && yarn --production=false && cd ../backend && yarn --production=false",
-    "build": "cd frontend && yarn build && yarn stage && cd ../backend && yarn build"
+    "build": "cd frontend && yarn build && yarn stage && cd ../backend && yarn build",
+    "deploy": "export NODE_ENV=production && cd backend && ~/Downloads/google-cloud-sdk/bin/gcloud app deploy && export NODE_ENV=development"
   }
 }
