@@ -6,7 +6,9 @@
   },
   "scripts": {
     "start": "cd backend && node dist/main",
-    "build": "cd frontend && yarn build && yarn stage && cd ../backend && yarn build",
-    "deploy": "export NODE_ENV=production && cd backend && ~/Downloads/google-cloud-sdk/bin/gcloud app deploy && export NODE_ENV=development"
+    "build:dev": "cd frontend && yarn build:dev && yarn stage && cd ../backend && yarn build",
+    "build:prod": "export NODE_ENV=production && cd frontend && yarn build:prod && yarn stage && cd ../backend && yarn build && export NODE_ENV=development",
+    "deploy": "yarn build:prod && export NODE_ENV=production && cd backend && ~/Downloads/google-cloud-sdk/bin/gcloud app deploy && export NODE_ENV=development"
+    
   }
 }

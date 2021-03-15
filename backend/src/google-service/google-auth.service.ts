@@ -15,7 +15,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: `${process.env.VUE_APP_BACKEND_URL}/google/redirect`,
       scope: process.env.GOOGLE_SCOPES,
-    });
+    })
   }
 
   // TODO: No refreshToken...
@@ -29,6 +29,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       accessToken,
       refreshToken
     }
-    done(null, user);
+    done(null, user)
   }
 }
