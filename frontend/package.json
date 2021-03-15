@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build:dev": "vue-cli-service build --mode development",
+    "build:dev": "vue-cli-service build --mode development && yarn stage",
     "build:prod": "vue-cli-service build",
     "stage": "mkdir -p ../backend/public && rm -rf ../backend/public/* && mv dist/* ../backend/public",
     "test:unit": "vue-cli-service test:unit",

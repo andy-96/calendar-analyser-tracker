@@ -29,11 +29,12 @@ export class AppController {
   }
 
   @Post('/test')
-  async getAllTestData(@Body() payload): Promise<any> {
+  async getAllTestData(@Body() payload, @Request() res): Promise<any> {
     this.logger.log('Client has reloaded')
     await this.googleService.authorize()
     const events = await this.googleService.getEvents()
     const categories = await this.firebaseService.fetchCategories(payload.userId)
+    console.log(res)
     return {
       events, categories
     }

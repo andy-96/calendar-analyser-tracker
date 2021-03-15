@@ -11,6 +11,8 @@ import Dropdown from 'primevue/dropdown'
 import Checkbox from 'primevue/checkbox'
 import Chart from 'primevue/chart'
 import ProgressSpinner from 'primevue/progressspinner'
+import ToastService from 'primevue/toastservice'
+import Toast from 'primevue/toast'
 
 import App from '@/App.vue'
 import router from '@/router'
@@ -18,6 +20,7 @@ import router from '@/router'
 createApp(App)
   .use(router)
   .use(PrimeVue)
+  .use(ToastService)
   .component('p-data-table', DataTable)
   .component('p-column', Column)
   .component('p-column-group', ColumnGroup)
@@ -28,4 +31,5 @@ createApp(App)
   .component('p-checkbox', Checkbox)
   .component('p-chart', Chart)
   .component('p-spinner', ProgressSpinner)
+  .component('p-toast', Toast)
   .mount('#app')

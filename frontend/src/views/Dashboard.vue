@@ -1,5 +1,6 @@
 <template lang="pug">
 .root
+  p-toast
   .navbar
     p.navbar__headline CALENDAR ANALYSER
     p-button.navbar__settings(icon="pi pi-cog" @click="openSettings")
@@ -38,15 +39,37 @@ import { CalendarsModel, CategoriesModel } from '@/data-models'
 import TimeTable from '@/components/TimeTable.vue'
 import DashboardModal from '@/components/DashboardModal.vue'
 
-export default defineComponent ({
+export default defineComponent({
   data: () => ({
     dataLoaded: false,
     userId: '' as string | string[],
     modalVisible: false,
     calendarsModel: new CalendarsModel() as CalendarsModel,
     categoriesModel: new CategoriesModel() as CategoriesModel,
-    backgroundColors: ['#50FFB1', '#4FB286', '#3C896D', '#546D64', '#4D685A', '#8E3B46', '#E0777D', '#C16200', '#881600', '#4E0110'],
-    hoverBackgroundColors: ['#0AFF91', '#38805F', '#255544', '#35453F', '#2B3B33', '#56242B', '#D2373F', '#7A3D00', '#3D0A00', '#280109'],
+    backgroundColors: [
+      '#50FFB1',
+      '#4FB286',
+      '#3C896D',
+      '#546D64',
+      '#4D685A',
+      '#8E3B46',
+      '#E0777D',
+      '#C16200',
+      '#881600',
+      '#4E0110'
+    ],
+    hoverBackgroundColors: [
+      '#0AFF91',
+      '#38805F',
+      '#255544',
+      '#35453F',
+      '#2B3B33',
+      '#56242B',
+      '#D2373F',
+      '#7A3D00',
+      '#3D0A00',
+      '#280109'
+    ],
     chartFilter: 'monday'
   }),
   components: {
@@ -63,7 +86,7 @@ export default defineComponent ({
       const labelsCalendars: string[] = []
       this.categoriesModel.getCategories().map(({ id, name, calendars, ...category }, i) => {
         if (id === 0) return // skip not assigned
-        calendars.map(({ calendarName, ...calendar }, i) => {
+        calendars.map(({ calendarName, ...calendar }) => {
           let calendarDuration = calendar['durationSinceMonday']
           if (this.chartFilter === 'lastWeek') {
             calendarDuration = calendar['durationLastWeek']
@@ -91,7 +114,7 @@ export default defineComponent ({
           },
           {
             data: dataCalendars,
-            labels: labelsCalendars,
+            labels: labelsCalendars
           }
         ]
       }
@@ -100,7 +123,7 @@ export default defineComponent ({
       return {
         responsive: true,
         legend: {
-          display: false,
+          display: false
         },
         tooltips: {
           callbacks: {
@@ -137,7 +160,9 @@ export default defineComponent ({
       if (this.userId === '123') {
         endpoint = '/test'
       }
-      const { data: { events, categories } } = await backend.post(endpoint, {
+      const {
+        data: { events, categories, userName }
+      } = await backend.post(endpoint, {
         userId: this.userId
       })
 
@@ -149,11 +174,10 @@ export default defineComponent ({
         this.openSettings()
       } else {
         this.categoriesModel.updateCategoriesFromDatabase(categories, this.calendarsModel)
-        this.modalVisible = false
+        this.$toast.add({severity:'info', summary: `Hey ${userName || 'Stranger'},`, detail:'Welcome back!', life: 3000})
       }
       this.dataLoaded = true
     } catch (err) {
-      console.log(err)
       this.$router.push({ name: 'Login' })
     }
   }
@@ -199,10 +223,10 @@ export default defineComponent ({
       border-color: transparent !important
     &:focus
       box-shadow: 0 0 0 0 transparent
-  
+
   .pi
     font-size: 1.2rem
-  
+
   &__logout
     position: absolute
     right: 20px
@@ -215,7 +239,7 @@ export default defineComponent ({
 
   p
     margin: 0
-  
+
   &__headline
     position: absolute
     left: 20px
@@ -233,12 +257,12 @@ export default defineComponent ({
     margin:
       right: 2rem
       left: 2rem
-    
+
     &--buttons
       display: flex
       justify-content: space-evenly
       margin-bottom: 1rem
-      
+
       p
         cursor: pointer
         &:hover
