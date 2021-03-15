@@ -10,12 +10,6 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 const PORT =  Number(process.env.PORT) || 3000
 
 async function bootstrap() {
-  fs.readdir('../public', (err, files) => {
-    if (err) return console.log(err)
-    files.forEach(file => {
-      console.log(file)
-    })
-  })
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
   app.enableCors()
   app.use(

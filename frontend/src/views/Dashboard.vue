@@ -14,13 +14,17 @@
     @clickClose="clickOnCloseModal"
   )
   .dashboard
-    p-chart.dashboard__chart(
-      type="pie"
-      :data="chartData"
-      :options="chartOptions"
-      :height="30"
-      :width="30"
-    )
+    .dashboard__chart
+      .dashboard__chart--buttons
+        p(@click="clickOnChartFilter('monday')") Since Monday
+        p(@click="clickOnChartFilter('lastWeek')") Last week
+      p-chart(
+        type="pie"
+        :data="chartData"
+        :options="chartOptions"
+        :height="30"
+        :width="30"
+      )
     time-table.dashboard__timetable(
       :categoriesModel="categoriesModel"
     )
@@ -30,11 +34,9 @@
 import { defineComponent } from 'vue'
 
 import { backend, msToTime } from '@/utils'
-import { SelectedCategories, CategoryEdit } from '@/interfaces'
 import { CalendarsModel, CategoriesModel } from '@/data-models'
 import TimeTable from '@/components/TimeTable.vue'
 import DashboardModal from '@/components/DashboardModal.vue'
-import { resolveCname } from 'node:dns'
 
 export default defineComponent ({
   data: () => ({
@@ -45,6 +47,7 @@ export default defineComponent ({
     categoriesModel: new CategoriesModel() as CategoriesModel,
     backgroundColors: ['#50FFB1', '#4FB286', '#3C896D', '#546D64', '#4D685A', '#8E3B46', '#E0777D', '#C16200', '#881600', '#4E0110'],
     hoverBackgroundColors: ['#0AFF91', '#38805F', '#255544', '#35453F', '#2B3B33', '#56242B', '#D2373F', '#7A3D00', '#3D0A00', '#280109'],
+    chartFilter: 'monday'
   }),
   components: {
     'time-table': TimeTable,
@@ -58,13 +61,21 @@ export default defineComponent ({
       const hoverBackgroundColorCategories: string[] = []
       const dataCalendars: number[] = []
       const labelsCalendars: string[] = []
-      this.categoriesModel.getCategories().map(({ id, name, durationSinceMonday, calendars }, i) => {
+      this.categoriesModel.getCategories().map(({ id, name, calendars, ...category }, i) => {
         if (id === 0) return // skip not assigned
-        calendars.map(({ calendarName, durationSinceMonday }, i) => {
-          dataCalendars.push(durationSinceMonday)
+        calendars.map(({ calendarName, ...calendar }, i) => {
+          let calendarDuration = calendar['durationSinceMonday']
+          if (this.chartFilter === 'lastWeek') {
+            calendarDuration = calendar['durationLastWeek']
+          }
+          dataCalendars.push(calendarDuration)
           labelsCalendars.push(calendarName)
         })
-        dataCategories.push(durationSinceMonday)
+        let categoryDuration = category['durationSinceMonday']
+        if (this.chartFilter === 'lastWeek') {
+          categoryDuration = category['durationLastWeek']
+        }
+        dataCategories.push(categoryDuration)
         labelsCategories.push(name)
         backgroundColorCategories.push(this.backgroundColors[this.backgroundColors.length - 1 - i])
         backgroundColorCategories.push(this.hoverBackgroundColors[this.hoverBackgroundColors.length - 1 - i])
@@ -107,11 +118,14 @@ export default defineComponent ({
     openSettings(): void {
       this.modalVisible = true
     },
+    clickOnChartFilter(mode: string): void {
+      this.chartFilter = mode
+    },
     clickOnCloseModal(): void {
       this.modalVisible = false
     },
     async clickOnLogout(): Promise<void> {
-      const res = await backend.get('/logout')
+      await backend.get('/logout')
       this.$router.push({ name: 'Login' })
     }
   },
@@ -219,6 +233,16 @@ export default defineComponent ({
     margin:
       right: 2rem
       left: 2rem
+    
+    &--buttons
+      display: flex
+      justify-content: space-evenly
+      margin-bottom: 1rem
+      
+      p
+        cursor: pointer
+        &:hover
+          color: #888
 
   &__timetable
     flex: 4

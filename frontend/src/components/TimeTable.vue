@@ -8,6 +8,8 @@ p-data-table.p-datatable-sm(
   p-column(field="name" header="Category")
   p-column(header="Duration since Monday")
     template(#body="slotProps") {{ msToTime(slotProps.data.durationSinceMonday) }}
+  p-column(header="Duration last week")
+    template(#body="slotProps") {{ msToTime(slotProps.data.durationLastWeek) }}
   p-column(header="Three month average")
     template(#body="slotProps") {{ msToTime(slotProps.data.threeMonthAverage) }}
   p-column(header="Total Duration")
@@ -17,6 +19,8 @@ p-data-table.p-datatable-sm(
       p-column(field="calendarName" header="Name")
       p-column(header="Duration since Monday")
         template(#body="slotProps") {{ msToTime(slotProps.data.durationSinceMonday) }}
+      p-column(header="Duration last week")
+        template(#body="slotProps") {{ msToTime(slotProps.data.durationLastWeek) }}
       p-column(header="Three month average")
         template(#body="slotProps") {{ msToTime(slotProps.data.threeMonthAverage) }}
       p-column(header="Total Duration")
@@ -28,7 +32,7 @@ import { defineComponent } from 'vue'
 import { CategoriesModel } from '@/data-models'
 import { msToTime } from '@/utils'
 
-export default defineComponent ({
+export default defineComponent({
   name: 'TimeTable',
   data: () => ({
     expandedRows: []

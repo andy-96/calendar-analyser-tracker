@@ -1,4 +1,5 @@
-.env
+.env.production
+.env.development
 token.json
 backend old
 */public

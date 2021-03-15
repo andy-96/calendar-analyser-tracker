@@ -35,8 +35,8 @@ export class GoogleService {
 
   async authorize(): Promise<void> {
     const oAuth2Client: OAuth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_CLIENT_ID_TEST,
+      process.env.GOOGLE_CLIENT_SECRET_TEST,
       process.env.GOOGLE_REDIRECT_URIS
     )
 

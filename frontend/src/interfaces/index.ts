@@ -10,6 +10,7 @@ export interface Calendar extends RawCalendar {
   totalDuration: number
   threeMonthAverage: number
   durationSinceMonday: number
+  durationLastWeek: number
 }
 
 export interface EventSparse {
@@ -45,6 +46,7 @@ export interface CategoryMeta extends Category {
   totalDuration: number
   threeMonthAverage: number
   durationSinceMonday: number
+  durationLastWeek: number
 }
 
 export interface FirebaseCategory extends CategorySparse {
