@@ -12,7 +12,7 @@ export class CalendarsModel {
 
   private createNewCalendarsTable(): void {
     const now = new Date()
-    const nowDay = now.getDay() - 1 // range is 0 - 6 (sunday - saturday)
+    const nowDay = now.getDay() === 0 ? 6 : now.getDay() - 1 // range is 0 - 6 (sunday - saturday)
     const lastMonday = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -21,6 +21,23 @@ export class CalendarsModel {
       0,
       0
     )
+    const lastWeekMonday = new Date(
+      lastMonday.getFullYear(),
+      lastMonday.getMonth(),
+      lastMonday.getDate() - nowDay - 7,
+      0,
+      0,
+      0
+    )
+    const lastWeekSunday = new Date(
+      lastMonday.getFullYear(),
+      lastMonday.getMonth(),
+      lastMonday.getDate() - nowDay - 1,
+      0,
+      0,
+      0
+    )
+
     const monthBegin = new Date(now.getFullYear(), now.getMonth() - 3, 1, 0)
     const monthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 0)
     this.calendars = this.rawCalendars
@@ -33,6 +50,16 @@ export class CalendarsModel {
         const durationSinceMonday = events
           .map(({ start, duration }) => {
             if (lastMonday < new Date(start.dateTime)) {
+              return duration
+            }
+            return 0
+          })
+          .reduce((a, b) => Number(a) + Number(b), 0)
+        
+        // Get last weeks duration
+        const durationLastWeek = events
+          .map(({ start, duration }) => {
+            if (lastWeekMonday < new Date(start.dateTime) && lastWeekSunday > new Date(start.dateTime)) {
               return duration
             }
             return 0
@@ -58,7 +85,8 @@ export class CalendarsModel {
           events,
           totalDuration,
           threeMonthAverage,
-          durationSinceMonday
+          durationSinceMonday,
+          durationLastWeek
         }
       })
       // sort by date

@@ -11,11 +11,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
   constructor() {
     super({
-      clientID: process.env.GOOGLE_CLIENT_ID_2,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET_2,
-      callbackURL: 'http://localhost:3000/google/redirect',
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: `${process.env.VUE_APP_BACKEND_URL}/google/redirect`,
       scope: process.env.GOOGLE_SCOPES,
-    });
+    })
   }
 
   // TODO: No refreshToken...
@@ -29,6 +29,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       accessToken,
       refreshToken
     }
-    done(null, user);
+    done(null, user)
   }
 }

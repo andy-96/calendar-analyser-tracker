@@ -5,11 +5,16 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "yarn": "1.x",
+    "node": "14.x"
+  },
+  "main": "dist/main.js",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
+    "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -18,7 +23,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "build:gcp": "tsc -p tsconfig.build.json",
+    "gcp-build": "yarn build:gcp"
   },
   "dependencies": {
     "@nestjs/common": "^7.5.1",

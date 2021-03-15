@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build:dev": "vue-cli-service build --mode development",
+    "build:prod": "vue-cli-service build",
     "stage": "mkdir -p ../backend/public && rm -rf ../backend/public/* && mv dist/* ../backend/public",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
@@ -22,7 +23,8 @@
     "sass-loader": "10.1.1",
     "vue": "^3.0.0",
     "vue-class-component": "^8.0.0-0",
-    "vue-router": "^4.0.0-0"
+    "vue-router": "^4.0.0-0",
+    "cross-env": "5.0.5"
   },
   "devDependencies": {
     "@types/jest": "^24.0.19",
