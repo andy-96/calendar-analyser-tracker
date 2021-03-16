@@ -25,4 +25,7 @@ router-view
 // Otherwise there is a weird box in the dropdown menu
 .p-hidden-accessible
   display: none
+
+.small
+  font-size: 0.7rem
 </style>

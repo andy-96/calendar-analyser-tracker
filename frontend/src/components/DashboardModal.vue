@@ -21,6 +21,7 @@
       .modal__content--categories_checkbox
         input(type="checkbox" value="saveToDatabase" id="saveToDatabase" v-model="saveToDatabase")
         label(for="saveToDatabase") Save to database
+        p.small (only hashed email and calendar ids are being saved)
       button.modal__content--categories_save(@click="clickOnSaveCategories") Apply
     .modal__content--table
       p-data-table(
@@ -42,7 +43,7 @@ import { CategorySparse, CategoryEdit, SelectedCategories, Calendar } from '@/in
 import { backend } from '@/utils'
 import { CalendarsModel, CategoriesModel } from '@/data-models'
 
-export default defineComponent ({
+export default defineComponent({
   name: 'DashboardModal',
   data() {
     return {
@@ -240,6 +241,11 @@ export default defineComponent ({
         position: absolute
         bottom: 5rem
         left: 10%
+        width: 80%
+        text-align: left
+
+        p
+          margin-top: 0.1rem
 
       &_save
         position: absolute
@@ -263,5 +269,4 @@ export default defineComponent ({
       flex: 3
       overflow: scroll
       background-color: white
-
 </style>

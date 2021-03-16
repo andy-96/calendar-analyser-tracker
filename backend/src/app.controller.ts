@@ -23,7 +23,6 @@ export class AppController {
     }
     const events = await this.googleService.getEvents()
     const categories = await this.firebaseService.fetchCategories(payload.userId)
-    console.log(req.user)
     return {
       events, categories, userName: req.user.firstName
     }

@@ -1,22 +1,18 @@
 <template lang="pug">
 .root
   .login__right
-    h1 CALENDAR ANALYSER
+    h1 NOT FOUND
+    h3 Redirecting to Login...
   .login__middle
-  .login__button
-    p.small Your calendar data will be directly fetched from Google and not saved!
-    button(@click="clickOnLogin") Login with Google
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'Login',
-  methods: {
-    async clickOnLogin(): Promise<void> {
-      window.location.href = `${process.env.VUE_APP_BACKEND_URL}/google`
-    }
+  name: 'NotFound',
+  mounted() {
+    setTimeout(() => this.$router.push({ name: 'Login' }), 3000)
   }
 })
 </script>
@@ -33,11 +29,19 @@ export default defineComponent({
     height: 100vh
     width: 40vw
     padding-left: 3rem
-    display: flex
+    position: relative
 
     h1
+      position: absolute
       font-size: 10rem
+      z-index: 100
+      width: 70vw
+
+    h3
+      position: absolute
       z-index: 10
+      top: 30%
+      margin-left: 2rem
 
   &__middle
     background-color: #2196F3
