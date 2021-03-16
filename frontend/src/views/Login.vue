@@ -38,7 +38,7 @@ export default defineComponent({
     h1
       font-size: 10rem
       z-index: 10
-  
+
   &__middle
     background-color: #2196F3
     width: 10vw

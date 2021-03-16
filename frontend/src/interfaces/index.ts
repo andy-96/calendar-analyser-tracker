@@ -63,3 +63,15 @@ export interface CategoryEdit {
     name: string
   }
 }
+
+export interface ChartTooltipItem {
+  index: number
+  datasetIndex: number
+}
+
+export interface ChartData {
+  datasets: {
+    labels: string
+    data: number[]
+  }[]
+}

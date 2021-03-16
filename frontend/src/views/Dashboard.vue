@@ -36,6 +36,7 @@ import { defineComponent } from 'vue'
 
 import { backend, msToTime } from '@/utils'
 import { CalendarsModel, CategoriesModel } from '@/data-models'
+import { ChartTooltipItem, ChartData } from '@/interfaces'
 import TimeTable from '@/components/TimeTable.vue'
 import DashboardModal from '@/components/DashboardModal.vue'
 
@@ -127,7 +128,7 @@ export default defineComponent({
         },
         tooltips: {
           callbacks: {
-            label: function(tooltipItem: any, data: any) {
+            label: function(tooltipItem: ChartTooltipItem, data: ChartData) {
               const dataset = data.datasets[tooltipItem.datasetIndex]
               const index = tooltipItem.index
               return dataset.labels[index] + ': ' + msToTime(dataset.data[index])
@@ -174,7 +175,12 @@ export default defineComponent({
         this.openSettings()
       } else {
         this.categoriesModel.updateCategoriesFromDatabase(categories, this.calendarsModel)
-        this.$toast.add({severity:'info', summary: `Hey ${userName || 'Stranger'},`, detail:'Welcome back!', life: 3000})
+        this.$toast.add({
+          severity: 'info',
+          summary: `Hey ${userName || 'Stranger'},`,
+          detail: 'Welcome back!',
+          life: 3000
+        })
       }
       this.dataLoaded = true
     } catch (err) {

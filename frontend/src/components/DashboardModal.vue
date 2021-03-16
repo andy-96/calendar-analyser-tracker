@@ -18,7 +18,10 @@
             input(type="text" v-model="categoryEdit[category.id].name")
             span.pi.pi-check(@click="clickOnCategorySave(category.id)")
             span.pi.pi-trash(@click="clickOnCategoryDelete(category.id)")
-      button.modal__content--categories_save(@click="clickOnSaveCategories") Save
+      .modal__content--categories_checkbox
+        input(type="checkbox" value="saveToDatabase" id="saveToDatabase" v-model="saveToDatabase")
+        label(for="saveToDatabase") Save to database
+      button.modal__content--categories_save(@click="clickOnSaveCategories") Apply
     .modal__content--table
       p-data-table(
         :value="calendars"
@@ -49,7 +52,8 @@ export default defineComponent ({
       categoryEdit: {} as CategoryEdit,
       selectedCategories: {} as SelectedCategories,
       categories: [] as CategorySparse[],
-      calendars: [] as Calendar[]
+      calendars: [] as Calendar[],
+      saveToDatabase: false
     }
   },
   props: {
@@ -114,10 +118,12 @@ export default defineComponent ({
       if (this.$route.params.userId === '123') {
         endpoint = '/save-categories-test'
       }
-      await backend.post(endpoint, {
-        userId: this.userId,
-        categoriesSparse
-      })
+      if (this.saveToDatabase) {
+        await backend.post(endpoint, {
+          userId: this.userId,
+          categoriesSparse
+        })
+      }
       this.clickOnCloseModal()
     }
   },
@@ -229,6 +235,11 @@ export default defineComponent ({
             width: 1px
           &:hover
             background-color: #777
+
+      &_checkbox
+        position: absolute
+        bottom: 5rem
+        left: 10%
 
       &_save
         position: absolute
